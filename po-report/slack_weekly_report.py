@@ -38,7 +38,7 @@ PO_KEYWORDS = re.compile(
 )
 AMOUNT_RE = re.compile(
     r"(RM|MYR|USD|US\$)\s*([0-9][0-9,]*(?:\.[0-9]+)?)"
-    r"|([0-9][0-9,]*(?:\.[0-9]+)?)\s*(RM|MYR|USD)\b",
+    r"|([0-9][0-9,]*(?:\.[0-9]+)?)\s*(RM|MYR|USD)\b(?!\s*[0-9])",
     re.I,
 )
 
