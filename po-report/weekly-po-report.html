@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Purchase Order Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    color-scheme: light;
+    --font-display: 'Spectral', Georgia, 'Times New Roman', serif;
+    --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+    --plane: #f4f6f3;
+    --surface: #ffffff;
+    --surface-2: #fbfcfa;
+    --ink: #16191c;
+    --ink-2: #565f5b;
+    --muted: #868f89;
+    --grid: #e7e9e3;
+    --baseline: #cdd0c9;
+    --border: rgba(22,25,28,0.11);
+    --border-strong: rgba(22,25,28,0.18);
+
+    --accent: #0f6e59;
+    --accent-ink: #0a5544;
+    --accent-wash: rgba(15,110,89,0.09);
+
+    --s-blue: #2a78d6;
+    --s-orange: #eb6834;
+
+    --st-good: #0ca30c;      --st-good-wash: rgba(12,163,12,0.11);
+    --st-info: #256abf;      --st-info-wash: rgba(37,106,191,0.11);
+    --st-warn-ink: #8a6100;  --st-warn-wash: rgba(250,178,25,0.16);
+
+    --shadow: 0 1px 2px rgba(22,25,28,0.05), 0 6px 20px rgba(22,25,28,0.04);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --plane: #0c0e0d;
+      --surface: #171a19;
+      --surface-2: #1c211e;
+      --ink: #f2f4f0;
+      --ink-2: #b7bfb9;
+      --muted: #868f89;
+      --grid: #2a2e2b;
+      --baseline: #383d39;
+      --border: rgba(255,255,255,0.10);
+      --border-strong: rgba(255,255,255,0.17);
+
+      --accent: #37b39a;
+      --accent-ink: #7fd6c5;
+      --accent-wash: rgba(55,179,154,0.15);
+
+      --s-blue: #3987e5;
+      --s-orange: #d95926;
+
+      --st-good: #3fc23f;      --st-good-wash: rgba(63,194,63,0.16);
+      --st-info: #5598e7;      --st-info-wash: rgba(85,152,231,0.16);
+      --st-warn-ink: #f0b64a;  --st-warn-wash: rgba(250,178,25,0.16);
+
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 6px 22px rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --plane: #0c0e0d;
+    --surface: #171a19;
+    --surface-2: #1c211e;
+    --ink: #f2f4f0;
+    --ink-2: #b7bfb9;
+    --muted: #868f89;
+    --grid: #2a2e2b;
+    --baseline: #383d39;
+    --border: rgba(255,255,255,0.10);
+    --border-strong: rgba(255,255,255,0.17);
+
+    --accent: #37b39a;
+    --accent-ink: #7fd6c5;
+    --accent-wash: rgba(55,179,154,0.15);
+
+    --s-blue: #3987e5;
+    --s-orange: #d95926;
+
+    --st-good: #3fc23f;      --st-good-wash: rgba(63,194,63,0.16);
+    --st-info: #5598e7;      --st-info-wash: rgba(85,152,231,0.16);
+    --st-warn-ink: #f0b64a;  --st-warn-wash: rgba(250,178,25,0.16);
+
+    --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 6px 22px rgba(0,0,0,0.35);
+  }
+
+  *{ box-sizing: border-box; }
+  html{ -webkit-text-size-adjust: 100%; }
+  body{
+    margin: 0;
+    background: var(--plane);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  .wrap{
+    max-width: 1120px;
+    margin: 0 auto;
+    padding-inline: 22px;
+    padding-block: 34px 60px;
+  }
+  a{ color: var(--accent-ink); }
+
+  /* ---------- Masthead ---------- */
+  .masthead{
+    display: grid;
+    gap: 18px;
+    padding-bottom: 22px;
+    border-bottom: 2px solid var(--ink);
+    margin-bottom: 26px;
+  }
+  .masthead-top{
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px 20px;
+  }
+  .eyebrow{
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent-ink);
+    font-weight: 600;
+  }
+  .title{
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: clamp(30px, 5.4vw, 46px);
+    line-height: 1.02;
+    letter-spacing: -0.012em;
+    margin: 6px 0 0;
+    text-wrap: balance;
+  }
+  .subtitle{
+    color: var(--ink-2);
+    font-size: 15px;
+    margin-top: 8px;
+  }
+  .subtitle .sep{ color: var(--muted); padding: 0 8px; }
+  .channel{
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--accent-ink);
+  }
+  .badge{
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--st-warn-wash);
+    color: var(--st-warn-ink);
+    border: 1px solid rgba(250,178,25,0.45);
+    padding: 7px 13px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    line-height: 1.2;
+  }
+  .badge::before{
+    content: "";
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #fab219;
+    box-shadow: 0 0 0 3px rgba(250,178,25,0.25);
+  }
+
+  /* ---------- Section ---------- */
+  .section{ margin-top: 34px; }
+  .section-head{
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .section-title{
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 20px;
+    letter-spacing: -0.005em;
+    margin: 0;
+  }
+  .section-note{ color: var(--muted); font-size: 13px; }
+
+  /* ---------- KPI tiles ---------- */
+  .kpi-row{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .kpi{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 20px 18px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi::before{
+    content:"";
+    position:absolute; left:0; top:0; bottom:0;
+    width: 4px;
+    background: var(--accent);
+  }
+  .kpi .label{
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    font-weight: 600;
+  }
+  .kpi .value{
+    font-family: var(--font-mono);
+    font-weight: 500;
+    font-size: clamp(28px, 4.4vw, 38px);
+    line-height: 1.05;
+    margin-top: 10px;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+  .kpi .value .unit{
+    font-size: 0.5em;
+    color: var(--muted);
+    letter-spacing: 0;
+    margin-right: 4px;
+  }
+  .kpi .sub{ color: var(--muted); font-size: 13px; margin-top: 6px; }
+
+  /* ---------- Secondary stat strip ---------- */
+  .stat-strip{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin-top: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .stat{
+    padding: 16px 18px;
+    border-left: 1px solid var(--border);
+  }
+  .stat:first-child{ border-left: 0; }
+  .stat .label{
+    font-size: 11px;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .stat .value{
+    font-family: var(--font-mono);
+    font-size: 21px;
+    margin-top: 7px;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .stat .sub{ color: var(--muted); font-size: 12px; margin-top: 5px; }
+  .delta{
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px 7px;
+    border-radius: 999px;
+  }
+  .delta.up{ color: var(--st-good); background: var(--st-good-wash); }
+  .delta.down{ color: #d03b3b; background: rgba(208,59,59,0.12); }
+
+  /* ---------- Charts ---------- */
+  .card{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 18px 16px;
+    box-shadow: var(--shadow);
+  }
+  .card-title{
+    font-size: 14px;
+    font-weight: 600;
+    margin: 0 0 2px;
+  }
+  .card-sub{ color: var(--muted); font-size: 12.5px; margin: 0 0 14px; }
+  .charts-lower{
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: 14px;
+    margin-top: 14px;
+  }
+  svg{ display: block; width: 100%; height: auto; }
+  .grid-line{ stroke: var(--grid); stroke-width: 1; }
+  .baseline{ stroke: var(--baseline); stroke-width: 1.5; }
+  .bar{ fill: var(--accent); }
+  .axis-lbl{ fill: var(--muted); font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .day-lbl{ fill: var(--ink-2); font-family: var(--font-sans); font-size: 13px; font-weight: 500; }
+  .val-lbl{ fill: var(--ink); font-family: var(--font-mono); font-size: 13px; font-weight: 500; }
+  .val-lbl.zero{ fill: var(--muted); }
+  .has-tip{ cursor: default; }
+  .bar.has-tip:hover, .arc:hover{ filter: brightness(1.08); }
+
+  /* Donut */
+  .donut-wrap{ display: grid; grid-template-columns: 172px 1fr; gap: 18px; align-items: center; }
+  .arc{ fill: none; stroke-width: 30; transition: filter .12s ease; }
+  .arc-usd{ stroke: var(--s-blue); }
+  .arc-rm{ stroke: var(--s-orange); }
+  .donut-center-1{ fill: var(--ink); font-family: var(--font-mono); font-size: 21px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .donut-center-2{ fill: var(--muted); font-family: var(--font-sans); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .legend{ display: grid; gap: 12px; }
+  .legend-row{ display: grid; grid-template-columns: 14px 1fr; gap: 10px; align-items: start; }
+  .swatch{ width: 14px; height: 14px; border-radius: 4px; margin-top: 3px; }
+  .swatch.usd{ background: var(--s-blue); }
+  .swatch.rm{ background: var(--s-orange); }
+  .legend-name{ font-weight: 600; font-size: 14px; }
+  .legend-meta{ color: var(--muted); font-size: 12.5px; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* Supplier bars */
+  .sup-list{ display: grid; gap: 13px; }
+  .sup-row{ display: grid; grid-template-columns: 132px 1fr auto; gap: 12px; align-items: center; }
+  .sup-name{ font-size: 13.5px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sup-track{ background: var(--surface-2); border: 1px solid var(--border); border-radius: 6px; height: 22px; overflow: hidden; }
+  .sup-fill{ height: 100%; background: var(--s-blue); border-radius: 5px 0 0 5px; min-width: 3px; }
+  .sup-val{ font-family: var(--font-mono); font-size: 13px; color: var(--ink-2); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  /* ---------- Table ---------- */
+  .table-scroll{ overflow-x: auto; border: 1px solid var(--border); border-radius: 14px; box-shadow: var(--shadow); background: var(--surface); }
+  table{ border-collapse: collapse; width: 100%; min-width: 780px; font-size: 13.5px; }
+  thead th{
+    text-align: left;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 600;
+    padding: 13px 14px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--border-strong);
+    white-space: nowrap;
+  }
+  tbody td{ padding: 12px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tbody tr:last-child td{ border-bottom: 0; }
+  tbody tr:hover td{ background: var(--accent-wash); }
+  .po-cell .po-no{ font-family: var(--font-mono); font-weight: 500; }
+  .po-cell .po-quote{ display:block; color: var(--muted); font-size: 11.5px; font-family: var(--font-mono); margin-top: 2px; }
+  .num{ text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .cur-tag{ font-family: var(--font-mono); font-size: 12px; font-weight: 500; }
+  .cur-usd{ color: var(--s-blue); }
+  .cur-rm{ color: var(--s-orange); }
+  .date-cell{ font-family: var(--font-mono); font-size: 12.5px; white-space: nowrap; }
+  tfoot td{
+    padding: 13px 14px;
+    border-top: 2px solid var(--border-strong);
+    font-weight: 600;
+    background: var(--surface-2);
+  }
+  tfoot .num{ font-weight: 600; }
+  .chip{
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 10px; border-radius: 999px;
+    font-size: 12px; font-weight: 600; white-space: nowrap;
+  }
+  .chip::before{ content:""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .chip-received{ color: var(--st-good); background: var(--st-good-wash); }
+  .chip-ordered{ color: var(--st-info); background: var(--st-info-wash); }
+  .chip-pending{ color: var(--st-warn-ink); background: var(--st-warn-wash); }
+
+  /* ---------- Input format ---------- */
+  .howto{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: var(--shadow);
+    display: grid;
+    gap: 18px;
+  }
+  .howto p{ margin: 0; color: var(--ink-2); max-width: 68ch; }
+  .schema{ border-collapse: collapse; width: 100%; min-width: 520px; font-size: 13px; }
+  .schema th, .schema td{ text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--border); }
+  .schema th{ font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  .schema td:first-child{ font-family: var(--font-mono); color: var(--accent-ink); white-space: nowrap; }
+  .schema td:nth-child(2){ font-family: var(--font-mono); color: var(--ink-2); white-space: nowrap; }
+  .code{
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    line-height: 1.7;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    overflow-x: auto;
+    color: var(--ink-2);
+    white-space: pre;
+  }
+  .code .hdr{ color: var(--accent-ink); }
+
+  /* ---------- Footer ---------- */
+  footer{
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12.5px;
+    display: grid;
+    gap: 6px;
+  }
+  footer strong{ color: var(--ink-2); font-weight: 600; }
+
+  /* ---------- Tooltip ---------- */
+  #tip{
+    position: fixed;
+    z-index: 50;
+    pointer-events: none;
+    background: var(--ink);
+    color: var(--plane);
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+    line-height: 1.4;
+    padding: 8px 11px;
+    border-radius: 8px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.28);
+    opacity: 0;
+    transform: translateY(2px);
+    transition: opacity .1s ease;
+    max-width: 240px;
+  }
+  #tip.on{ opacity: 1; }
+  #tip .t-title{ font-weight: 600; }
+  #tip .t-mono{ font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  @media (max-width: 860px){
+    .charts-lower{ grid-template-columns: 1fr; }
+  }
+  @media (max-width: 680px){
+    .kpi-row{ grid-template-columns: 1fr; }
+    .stat-strip{ grid-template-columns: 1fr 1fr; }
+    .stat{ border-left: 0; border-top: 1px solid var(--border); }
+    .stat:first-child, .stat:nth-child(2){ border-top: 0; }
+    .stat:nth-child(odd){ border-left: 0; }
+    .stat:nth-child(even){ border-left: 1px solid var(--border); }
+    .donut-wrap{ grid-template-columns: 1fr; justify-items: center; text-align: left; }
+    .sup-row{ grid-template-columns: 100px 1fr auto; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{ transition: none !important; }
+  }
+  :focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== Masthead ===== -->
+  <header class="masthead">
+    <div class="masthead-top">
+      <div>
+        <div class="eyebrow">Procurement &middot; Weekly Digest</div>
+        <h1 class="title">Weekly Purchase Order Report</h1>
+        <div class="subtitle">
+          <span id="week-label">Week of 08 Sep – 14 Sep 2026 (Mon–Sun)</span>
+          <span class="sep">|</span>
+          <span>Source: <span class="channel">#purchase-request-pr</span></span>
+        </div>
+      </div>
+      <div class="badge">Sample / Template — replace with real data</div>
+    </div>
+  </header>
+
+  <!-- ===== KPI tiles ===== -->
+  <section class="section" aria-label="Headline metrics">
+    <div class="kpi-row" id="kpi-row"></div>
+    <div class="stat-strip" id="stat-strip"></div>
+  </section>
+
+  <!-- ===== Charts ===== -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">This week at a glance</h2>
+      <span class="section-note">Aggregated from the PO detail below</span>
+    </div>
+
+    <div class="card">
+      <p class="card-title">Purchase orders received per day</p>
+      <p class="card-sub">Count of POs logged in <span class="channel">#purchase-request-pr</span>, Monday through Sunday</p>
+      <svg id="chart-day" viewBox="0 0 680 300" role="img" aria-label="Bar chart of purchase orders received per day, Monday to Sunday"></svg>
+    </div>
+
+    <div class="charts-lower">
+      <div class="card">
+        <p class="card-title">Currency split</p>
+        <p class="card-sub">Value share by RM equivalent; count of POs per currency</p>
+        <div class="donut-wrap">
+          <svg id="chart-donut" viewBox="0 0 172 172" role="img" aria-label="Donut chart of value share by currency"></svg>
+          <div class="legend" id="donut-legend"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">Top suppliers by value</p>
+        <p class="card-sub">Total order value this week (RM equivalent)</p>
+        <div class="sup-list" id="sup-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Detail table ===== -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">PO detail</h2>
+      <span class="section-note" id="table-note"></span>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>PO No.</th>
+            <th>Date Received</th>
+            <th>Requester</th>
+            <th>Supplier</th>
+            <th>Currency</th>
+            <th class="num">Amount</th>
+            <th class="num">Amount (RM equiv)</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="po-body"></tbody>
+        <tfoot id="po-foot"></tfoot>
+      </table>
+    </div>
+  </section>
+
+  <!-- ===== How to populate ===== -->
+  <section class="section">
+    <div class="section-head">
+      <h2 class="section-title">How to populate this report</h2>
+    </div>
+    <div class="howto">
+      <p>
+        This is a reusable template. Feed it one row per purchase order — a table, CSV export,
+        or spreadsheet — using the columns below. The report groups those rows by day, currency
+        and supplier and computes every count and total shown above; nothing here is typed in by
+        hand. USD amounts are converted to Ringgit at the FX rate noted in the footer to produce
+        the <em>RM equivalent</em> and the combined figures.
+      </p>
+
+      <table class="schema">
+        <thead>
+          <tr><th>Column</th><th>Type / values</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>po_number</td><td>text</td><td>Unique PO reference, e.g. PO-2026-0801</td></tr>
+          <tr><td>date_received</td><td>YYYY-MM-DD</td><td>Date the PO was submitted in the channel</td></tr>
+          <tr><td>requester</td><td>text</td><td>Person who raised the request</td></tr>
+          <tr><td>supplier</td><td>text</td><td>Vendor name, e.g. Dwyer, Hyperwave</td></tr>
+          <tr><td>currency</td><td>USD | RM</td><td>Denomination of the order amount</td></tr>
+          <tr><td>amount</td><td>number</td><td>Order value in its own currency (no symbol)</td></tr>
+          <tr><td>status</td><td>Received | Ordered | Pending</td><td>Current handling state of the PO</td></tr>
+        </tbody>
+      </table>
+
+      <div class="code"><span class="hdr">po_number,date_received,requester,supplier,currency,amount,status</span>
+PO-2026-0801,2026-09-08,A. Rahman,Dwyer,RM,42000,Received
+PO-2026-0802,2026-09-08,L. Tan,Hyperwave,USD,3200,Ordered
+PO-2026-0804,2026-09-09,J. Wong,Meridian Instruments,USD,1800,Pending
+&hellip;</div>
+    </div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer>
+    <div><strong>Auto-generated weekly.</strong> Intended cadence: every Monday at 08:30 from POs posted in <span class="channel">#purchase-request-pr</span> over the preceding Mon–Sun window.</div>
+    <div id="fx-note"></div>
+    <div>Sample figures shown for layout only — replace the report data before circulating.</div>
+  </footer>
+
+</div>
+
+<div id="tip" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- Report configuration ---------- */
+  var FX = 4.70;                    // USD 1 = RM 4.70
+  var CFG = {
+    weekLabel: "Week of 08 Sep – 14 Sep 2026 (Mon–Sun)",
+    lastWeekPOs: 10,
+    lastWeekCombinedRM: 176900
+  };
+
+  /* One row per purchase order. currency is "USD" or "RM". */
+  var ROWS = [
+    { po:"PO-2026-0801", quote:"QTN-DW-4471", date:"2026-09-08", day:0, requester:"A. Rahman", supplier:"Dwyer",                currency:"RM",  amount:42000, status:"Received" },
+    { po:"PO-2026-0802", quote:"HW-Q-20913",  date:"2026-09-08", day:0, requester:"L. Tan",    supplier:"Hyperwave",            currency:"USD", amount:3200,  status:"Ordered"  },
+    { po:"PO-2026-0803", quote:"NS-2026-118",  date:"2026-09-08", day:0, requester:"S. Menon",  supplier:"Nimbus Supplies",      currency:"RM",  amount:9500,  status:"Received" },
+    { po:"PO-2026-0804", quote:"MI-Q-3390",    date:"2026-09-09", day:1, requester:"J. Wong",   supplier:"Meridian Instruments", currency:"USD", amount:1800,  status:"Pending"  },
+    { po:"PO-2026-0805", quote:"CF-QT-771",    date:"2026-09-09", day:1, requester:"P. Kaur",   supplier:"Coastal Fasteners",    currency:"RM",  amount:28000, status:"Ordered"  },
+    { po:"PO-2026-0806", quote:"QTN-DW-4478",  date:"2026-09-10", day:2, requester:"A. Rahman", supplier:"Dwyer",                currency:"USD", amount:2500,  status:"Received" },
+    { po:"PO-2026-0807", quote:"HW-Q-20950",   date:"2026-09-10", day:2, requester:"D. Lim",    supplier:"Hyperwave",            currency:"RM",  amount:33500, status:"Ordered"  },
+    { po:"PO-2026-0808", quote:"MI-Q-3402",    date:"2026-09-10", day:2, requester:"J. Wong",   supplier:"Meridian Instruments", currency:"RM",  amount:18500, status:"Received" },
+    { po:"PO-2026-0809", quote:"HW-Q-20988",   date:"2026-09-11", day:3, requester:"L. Tan",    supplier:"Hyperwave",            currency:"USD", amount:1100,  status:"Pending"  },
+    { po:"PO-2026-0810", quote:"QTN-DW-4490",  date:"2026-09-11", day:3, requester:"S. Menon",  supplier:"Dwyer",                currency:"RM",  amount:12000, status:"Received" },
+    { po:"PO-2026-0811", quote:"CF-QT-780",    date:"2026-09-12", day:4, requester:"P. Kaur",   supplier:"Coastal Fasteners",    currency:"RM",  amount:5000,  status:"Received" },
+    { po:"PO-2026-0812", quote:"NS-2026-121",  date:"2026-09-12", day:4, requester:"D. Lim",    supplier:"Nimbus Supplies",      currency:"USD", amount:600,   status:"Ordered"  }
+  ];
+
+  var DAYS = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+
+  /* ---------- Formatting ---------- */
+  var nf = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+  function rm(n){ return "RM " + nf.format(Math.round(n)); }
+  function usd(n){ return "USD " + nf.format(Math.round(n)); }
+  function rmEquiv(r){ return r.currency === "USD" ? r.amount * FX : r.amount; }
+  function pct(x){ return (x * 100).toFixed(1) + "%"; }
+  function esc(s){ return String(s).replace(/[&<>]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]; }); }
+
+  /* ---------- Aggregations ---------- */
+  var totalPOs   = ROWS.length;
+  var totalRM    = ROWS.filter(function(r){ return r.currency === "RM"; }).reduce(function(a,r){ return a + r.amount; }, 0);
+  var totalUSD   = ROWS.filter(function(r){ return r.currency === "USD"; }).reduce(function(a,r){ return a + r.amount; }, 0);
+  var countRM    = ROWS.filter(function(r){ return r.currency === "RM"; }).length;
+  var countUSD   = ROWS.filter(function(r){ return r.currency === "USD"; }).length;
+  var combinedRM = ROWS.reduce(function(a,r){ return a + rmEquiv(r); }, 0);
+  var usdInRM    = totalUSD * FX;
+  var supplierCount = (function(){ var s = {}; ROWS.forEach(function(r){ s[r.supplier] = 1; }); return Object.keys(s).length; })();
+  var avgPO      = combinedRM / totalPOs;
+
+  var perDay = DAYS.map(function(_, i){ return ROWS.filter(function(r){ return r.day === i; }).length; });
+
+  var supTotals = (function(){
+    var m = {};
+    ROWS.forEach(function(r){ m[r.supplier] = (m[r.supplier] || 0) + rmEquiv(r); });
+    return Object.keys(m).map(function(k){ return { name: k, total: m[k] }; })
+                 .sort(function(a,b){ return b.total - a.total; });
+  })();
+
+  var poDelta = totalPOs - CFG.lastWeekPOs;
+  var valDeltaPct = (combinedRM - CFG.lastWeekCombinedRM) / CFG.lastWeekCombinedRM;
+
+  /* ---------- Tooltip ---------- */
+  var tip = document.getElementById("tip");
+  function showTip(html, x, y){
+    tip.innerHTML = html;
+    tip.classList.add("on");
+    var w = tip.offsetWidth, h = tip.offsetHeight;
+    var left = x + 14, top = y + 14;
+    if (left + w > window.innerWidth - 8) left = x - w - 14;
+    if (top + h > window.innerHeight - 8) top = y - h - 14;
+    tip.style.left = Math.max(8, left) + "px";
+    tip.style.top = Math.max(8, top) + "px";
+  }
+  function hideTip(){ tip.classList.remove("on"); }
+  function bindTip(el, html){
+    el.addEventListener("mousemove", function(e){ showTip(html, e.clientX, e.clientY); });
+    el.addEventListener("mouseleave", hideTip);
+    el.addEventListener("focus", function(){
+      var b = el.getBoundingClientRect();
+      showTip(html, b.left + b.width / 2, b.top);
+    });
+    el.addEventListener("blur", hideTip);
+  }
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function svg(tag, attrs){
+    var e = document.createElementNS(SVGNS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    return e;
+  }
+
+  /* ---------- KPI tiles ---------- */
+  document.getElementById("week-label").textContent = CFG.weekLabel;
+  document.getElementById("fx-note").innerHTML =
+    "<strong>FX rate:</strong> USD 1 = RM " + FX.toFixed(2) +
+    " — a weekly assumption applied to all USD orders for the RM-equivalent and combined figures.";
+  document.getElementById("table-note").textContent = totalPOs + " purchase orders";
+
+  var kpis = [
+    { label: "Total POs Received", value: String(totalPOs), unit: "", sub: "logged this reporting week" },
+    { label: "Total Amount (RM)", value: nf.format(totalRM), unit: "RM", sub: countRM + " RM-denominated POs" },
+    { label: "Total Amount (USD)", value: nf.format(totalUSD), unit: "USD", sub: countUSD + " USD-denominated POs" }
+  ];
+  document.getElementById("kpi-row").innerHTML = kpis.map(function(k){
+    return '<div class="kpi"><div class="label">' + k.label + '</div>' +
+      '<div class="value">' + (k.unit ? '<span class="unit">' + k.unit + '</span>' : '') + k.value + '</div>' +
+      '<div class="sub">' + k.sub + '</div></div>';
+  }).join("");
+
+  var poDeltaHtml = '<span class="delta ' + (poDelta >= 0 ? 'up' : 'down') + '">' +
+      (poDelta >= 0 ? '▲ +' : '▼ ') + poDelta + '</span>';
+  var valDeltaHtml = '<span class="delta ' + (valDeltaPct >= 0 ? 'up' : 'down') + '">' +
+      (valDeltaPct >= 0 ? '▲ +' : '▼ ') + pct(Math.abs(valDeltaPct)) + '</span>';
+
+  var stats = [
+    { label: "Combined value (RM equiv)", value: rm(combinedRM), extra: valDeltaHtml, sub: "USD converted at RM " + FX.toFixed(2) + " · vs last week" },
+    { label: "Suppliers", value: String(supplierCount), extra: "", sub: "distinct vendors this week" },
+    { label: "Average PO value", value: rm(avgPO), extra: "", sub: "combined value ÷ " + totalPOs + " POs" },
+    { label: "POs vs last week", value: String(totalPOs), extra: poDeltaHtml, sub: totalPOs + " this week · " + CFG.lastWeekPOs + " last week" }
+  ];
+  document.getElementById("stat-strip").innerHTML = stats.map(function(s){
+    return '<div class="stat"><div class="label">' + s.label + '</div>' +
+      '<div class="value">' + s.value + ' ' + s.extra + '</div>' +
+      '<div class="sub">' + s.sub + '</div></div>';
+  }).join("");
+
+  /* ---------- Bar chart: POs per day ---------- */
+  (function(){
+    var el = document.getElementById("chart-day");
+    var W = 680, H = 300, PL = 40, PR = 16, PT = 34, PB = 40;
+    var plotW = W - PL - PR, plotH = H - PT - PB;
+    var maxV = Math.max(3, Math.max.apply(null, perDay));
+    var ticks = maxV;
+    var yFor = function(v){ return PT + plotH - (v / maxV) * plotH; };
+
+    for (var t = 0; t <= ticks; t++){
+      var y = yFor(t);
+      el.appendChild(svg("line", { x1: PL, y1: y, x2: W - PR, y2: y, class: t === 0 ? "baseline" : "grid-line" }));
+      var tl = svg("text", { x: PL - 10, y: y + 4, class: "axis-lbl", "text-anchor": "end" });
+      tl.textContent = t;
+      el.appendChild(tl);
+    }
+
+    var slot = plotW / DAYS.length;
+    var barW = Math.min(46, slot * 0.5);
+    perDay.forEach(function(v, i){
+      var cx = PL + i * slot + slot / 2;
+      var x = cx - barW / 2;
+      var y = yFor(v);
+      var h = PT + plotH - y;
+
+      if (v > 0){
+        var bar = svg("rect", { x: x, y: y, width: barW, height: h, rx: 4, class: "bar has-tip", tabindex: "0" });
+        bar.setAttribute("aria-label", DAYS[i] + ": " + v + " POs");
+        el.appendChild(bar);
+        bindTip(bar, '<div class="t-title">' + DAYS[i] + '</div><div class="t-mono">' + v + ' PO' + (v === 1 ? '' : 's') + ' received</div>');
+      }
+      var vl = svg("text", { x: cx, y: v > 0 ? y - 9 : yFor(0) - 9, class: "val-lbl" + (v === 0 ? " zero" : ""), "text-anchor": "middle" });
+      vl.textContent = v;
+      el.appendChild(vl);
+
+      var dl = svg("text", { x: cx, y: H - 14, class: "day-lbl", "text-anchor": "middle" });
+      dl.textContent = DAYS[i];
+      el.appendChild(dl);
+    });
+  })();
+
+  /* ---------- Donut: currency value share ---------- */
+  (function(){
+    var el = document.getElementById("chart-donut");
+    var cx = 86, cy = 86, r = 62, C = 2 * Math.PI * r, gap = 4;
+    var shareUSD = usdInRM / combinedRM;
+    var shareRM = totalRM / combinedRM;
+    var segU = shareUSD * C, segR = shareRM * C;
+
+    el.appendChild(svg("circle", { cx: cx, cy: cy, r: r, class: "arc", stroke: "var(--surface-2)", "stroke-width": "30" }));
+
+    var arcR = svg("circle", {
+      cx: cx, cy: cy, r: r, class: "arc arc-rm has-tip", tabindex: "0",
+      "stroke-dasharray": (segR - gap) + " " + (C - segR + gap),
+      "stroke-dashoffset": -(segU),
+      transform: "rotate(-90 " + cx + " " + cy + ")",
+      "stroke-linecap": "butt"
+    });
+    arcR.setAttribute("aria-label", "RM orders: " + rm(totalRM) + ", " + pct(shareRM));
+    el.appendChild(arcR);
+    bindTip(arcR, '<div class="t-title">RM orders</div><div class="t-mono">' + rm(totalRM) + ' · ' + pct(shareRM) + '</div><div class="t-mono">' + countRM + ' POs</div>');
+
+    var arcU = svg("circle", {
+      cx: cx, cy: cy, r: r, class: "arc arc-usd has-tip", tabindex: "0",
+      "stroke-dasharray": (segU - gap) + " " + (C - segU + gap),
+      "stroke-dashoffset": 0,
+      transform: "rotate(-90 " + cx + " " + cy + ")",
+      "stroke-linecap": "butt"
+    });
+    arcU.setAttribute("aria-label", "USD orders: " + usd(totalUSD) + " (" + rm(usdInRM) + " equiv), " + pct(shareUSD));
+    el.appendChild(arcU);
+    bindTip(arcU, '<div class="t-title">USD orders</div><div class="t-mono">' + usd(totalUSD) + ' → ' + rm(usdInRM) + '</div><div class="t-mono">' + pct(shareUSD) + ' · ' + countUSD + ' POs</div>');
+
+    var c1 = svg("text", { x: cx, y: cy - 2, class: "donut-center-1", "text-anchor": "middle" });
+    c1.textContent = rm(combinedRM);
+    el.appendChild(c1);
+    var c2 = svg("text", { x: cx, y: cy + 15, class: "donut-center-2", "text-anchor": "middle" });
+    c2.textContent = "Combined (RM equiv)";
+    el.appendChild(c2);
+
+    document.getElementById("donut-legend").innerHTML =
+      '<div class="legend-row"><span class="swatch rm"></span><div>' +
+        '<div class="legend-name">RM · ' + countRM + ' POs</div>' +
+        '<div class="legend-meta">' + rm(totalRM) + ' &middot; ' + pct(shareRM) + '</div></div></div>' +
+      '<div class="legend-row"><span class="swatch usd"></span><div>' +
+        '<div class="legend-name">USD · ' + countUSD + ' POs</div>' +
+        '<div class="legend-meta">' + usd(totalUSD) + ' → ' + rm(usdInRM) + ' &middot; ' + pct(shareUSD) + '</div></div></div>';
+  })();
+
+  /* ---------- Supplier bars ---------- */
+  (function(){
+    var max = supTotals[0].total;
+    document.getElementById("sup-list").innerHTML = supTotals.map(function(s){
+      var w = (s.total / max) * 100;
+      return '<div class="sup-row has-tip" tabindex="0" data-tip="' +
+             esc(s.name) + '|' + rm(s.total) + '">' +
+        '<div class="sup-name" title="' + esc(s.name) + '">' + esc(s.name) + '</div>' +
+        '<div class="sup-track"><div class="sup-fill" style="width:' + w.toFixed(1) + '%"></div></div>' +
+        '<div class="sup-val">' + rm(s.total) + '</div></div>';
+    }).join("");
+
+    Array.prototype.forEach.call(document.querySelectorAll("#sup-list .sup-row"), function(row){
+      var parts = row.getAttribute("data-tip").split("|");
+      bindTip(row, '<div class="t-title">' + esc(parts[0]) + '</div><div class="t-mono">' + parts[1] + ' · RM equiv</div>');
+    });
+  })();
+
+  /* ---------- Detail table ---------- */
+  (function(){
+    var chipClass = { "Received": "chip-received", "Ordered": "chip-ordered", "Pending": "chip-pending" };
+    document.getElementById("po-body").innerHTML = ROWS.map(function(r){
+      var eq = rmEquiv(r);
+      var curClass = r.currency === "USD" ? "cur-usd" : "cur-rm";
+      var amount = r.currency === "USD" ? usd(r.amount) : rm(r.amount);
+      return "<tr>" +
+        '<td class="po-cell"><span class="po-no">' + r.po + '</span>' +
+          '<span class="po-quote">Quote ' + esc(r.quote) + '</span></td>' +
+        '<td class="date-cell">' + r.date + '</td>' +
+        '<td>' + esc(r.requester) + '</td>' +
+        '<td>' + esc(r.supplier) + '</td>' +
+        '<td><span class="cur-tag ' + curClass + '">' + r.currency + '</span></td>' +
+        '<td class="num">' + amount + '</td>' +
+        '<td class="num">' + rm(eq) + '</td>' +
+        '<td><span class="chip ' + chipClass[r.status] + '">' + r.status + '</span></td>' +
+        "</tr>";
+    }).join("");
+
+    document.getElementById("po-foot").innerHTML =
+      "<tr>" +
+        '<td colspan="4">Totals — ' + totalPOs + ' POs · ' + supplierCount + ' suppliers</td>' +
+        '<td>' + countUSD + ' USD / ' + countRM + ' RM</td>' +
+        '<td class="num">' + usd(totalUSD) + '<br>' + rm(totalRM) + '</td>' +
+        '<td class="num">' + rm(combinedRM) + '</td>' +
+        '<td></td>' +
+      "</tr>";
+  })();
+
+})();
+</script>
+</body>
+</html>
