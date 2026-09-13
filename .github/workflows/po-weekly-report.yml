@@ -1,0 +1,24 @@
+name: Weekly PO Report
+
+on:
+  schedule:
+    # 00:30 UTC == 08:30 Asia/Kuala_Lumpur (UTC+8), every Monday.
+    # NOTE: GitHub Actions scheduled workflows only run from the repository's
+    # DEFAULT branch, so this file must be merged to `main` before the cron fires.
+    - cron: "30 0 * * 1"
+  workflow_dispatch: {}
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Generate and post the weekly PO report
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          SLACK_CHANNEL_ID: ${{ vars.SLACK_CHANNEL_ID }}
+          USD_TO_RM: ${{ vars.USD_TO_RM }}
+        run: python po-report/slack_weekly_report.py
