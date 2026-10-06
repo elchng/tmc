@@ -1,0 +1,185 @@
+/*
+ * Celectric Travel & Expense Claim Form
+ * The .cel-sheet table reproduces the Excel sheet: Calibri, column widths
+ * A–I, row heights, fills, borders and merged cells. Rules are scoped and
+ * use !important on the few properties themes/Elementor commonly override.
+ */
+
+/* Break out of narrow theme content columns so the full sheet fits on desktop; scrolls sideways on phones. */
+.cel-claim-wrap {
+	position: relative; left: 50%; transform: translateX(-50%);
+	width: min(1232px, calc(100vw - 32px)); max-width: none !important;
+	font-family: Calibri, Carlito, "Segoe UI", Arial, sans-serif;
+}
+.cel-sheet-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+
+/* ---------- the sheet ---------- */
+/* .cel-frame carries the black outer frame and the logo; cells use the Excel
+   gridline grey (#D9D9D9), header/subtotal rules are medium #1F4E78. */
+.cel-frame {
+	position: relative;
+	width: 1230px;
+	margin: 0 auto;
+	border: 1px solid #000;
+	background: #fff;
+	-webkit-print-color-adjust: exact;
+	print-color-adjust: exact;
+}
+.cel-frame .cel-logo {
+	position: absolute; left: 69px; top: 8px; width: 129px; height: 65px;
+	max-width: none !important; border: 0 !important; box-shadow: none !important; margin: 0 !important; z-index: 1;
+}
+table.cel-sheet {
+	--cel-g: #D9D9D9;
+	--cel-n: #1F4E78;
+	border-collapse: collapse !important;
+	border-spacing: 0;
+	table-layout: fixed;
+	width: 1230px !important;
+	max-width: none !important;
+	margin: 0 !important;
+	border: 0 !important;
+	background: #fff;
+	color: #000;
+	font-family: Calibri, Carlito, "Segoe UI", Arial, sans-serif;
+	font-size: 13.3px; /* 10pt */
+	line-height: 1.15;
+}
+table.cel-sheet td {
+	border: 0 !important;
+	padding: 0 5px !important;
+	vertical-align: middle !important;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+}
+table.cel-sheet tr { background: transparent !important; }
+table.cel-sheet tr.h21 { height: 21px; }
+table.cel-sheet tr.h24 { height: 24px; }
+table.cel-sheet tr.h26 { height: 26px; }
+table.cel-sheet tr.h29 { height: 29px; }
+table.cel-sheet tr.h32 { height: 32px; }
+table.cel-sheet tr.h40 { height: 40px; }
+
+table.cel-sheet .title { font-size: 21.3px; font-weight: 700; text-align: center; } /* 16pt */
+table.cel-sheet .subtitle { font-style: italic; text-align: center; }
+table.cel-sheet .sec {
+	background: #2F5496 !important; color: #fff !important;
+	font-size: 14.7px; font-weight: 700; /* 11pt */
+}
+table.cel-sheet .lbl { font-weight: 700; }
+table.cel-sheet .in,
+table.cel-sheet .row td,
+table.cel-sheet .head td,
+table.cel-sheet .tot,
+table.cel-sheet .sumlbl,
+table.cel-sheet .guide { border: 1px solid var(--cel-g) !important; }
+table.cel-sheet .in { background: #DCE6F1 !important; }
+table.cel-sheet .head td {
+	background: #D9E1F2 !important; color: var(--cel-n) !important;
+	font-weight: 700; text-align: center; white-space: normal;
+	border-bottom: 2px solid var(--cel-n) !important;
+}
+table.cel-sheet .c { text-align: center; }
+table.cel-sheet .r { text-align: right; }
+table.cel-sheet .b { font-weight: 700; }
+table.cel-sheet .tot { background: #E2EFDA !important; text-align: right; }
+table.cel-sheet .sub {
+	background: #F2F2F2 !important; font-weight: 700; text-align: right;
+	border-top: 1px solid var(--cel-g) !important;
+}
+table.cel-sheet .sub,
+table.cel-sheet .subtot { border-bottom: 2px solid var(--cel-n) !important; }
+table.cel-sheet .guide {
+	background: #F2F2F2 !important; font-size: 12px; font-style: italic; /* 9pt */
+	vertical-align: top !important; white-space: normal; padding: 2px 5px !important;
+	line-height: 1.25;
+}
+table.cel-sheet .sumlbl { font-weight: 700; text-align: right; }
+table.cel-sheet .grand {
+	background: var(--cel-n) !important; color: #fff !important;
+	font-size: 14.7px; font-weight: 700; text-align: right;
+	border-top: 1px solid var(--cel-g) !important; border-bottom: 3px double var(--cel-n) !important;
+}
+/* Outer edges belong to .cel-frame (black), so drop the grey cell edges there. */
+table.cel-sheet tr:not(.gr) > td:first-child { border-left: 0 !important; }
+table.cel-sheet tr > td:last-child { border-right: 0 !important; }
+table.cel-sheet .guide { border-bottom: 0 !important; }
+
+/* ---------- editable cells ---------- */
+table.cel-sheet.is-edit .in { padding: 0 !important; }
+table.cel-sheet.is-edit input,
+table.cel-sheet.is-edit select {
+	all: unset;
+	box-sizing: border-box;
+	display: block;
+	width: 100%;
+	height: 25px;
+	padding: 0 5px;
+	font: inherit;
+	color: #000;
+	text-align: inherit;
+	background: transparent;
+	cursor: text;
+}
+table.cel-sheet.is-edit select {
+	cursor: pointer; line-height: 25px; padding-right: 18px; text-align-last: inherit;
+	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%231F4E78'/%3E%3C/svg%3E") no-repeat right 6px center;
+}
+@media print { table.cel-sheet.is-edit select { background: none; } }
+table.cel-sheet.is-edit .c select { text-align-last: center; }
+table.cel-sheet.is-edit input[type="number"] { text-align: right; -moz-appearance: textfield; }
+table.cel-sheet.is-edit input::-webkit-outer-spin-button,
+table.cel-sheet.is-edit input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+table.cel-sheet.is-edit input:focus,
+table.cel-sheet.is-edit select:focus { outline: 2px solid #2F5496; outline-offset: -2px; background: #fff; }
+table.cel-sheet .cel-auto { color: #6b7a90; font-size: 11px; }
+table.cel-sheet.is-edit .in.fr { padding: 0 5px !important; }
+
+/* ---------- page furniture ---------- */
+.cel-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 14px auto 6px; max-width: 1232px; }
+.cel-spacer { flex: 1 1 auto; }
+.cel-btn {
+	display: inline-block; padding: 9px 16px; border-radius: 4px; border: 1px solid #2F5496;
+	font: 600 14px/1.2 Calibri, Carlito, "Segoe UI", Arial, sans-serif; text-decoration: none !important;
+	cursor: pointer; background: #fff; color: #2F5496 !important;
+}
+.cel-btn-primary { background: #2F5496; color: #fff !important; }
+.cel-btn-primary:hover { background: #1F4E78; }
+.cel-btn-light:hover { background: #D9E1F2; }
+.cel-hint { max-width: 1232px; margin: 4px auto 24px; font-size: 13px; color: #555; }
+.cel-notice { max-width: 1232px; margin: 0 auto 14px; padding: 12px 14px; border-radius: 4px; font-size: 14px; }
+.cel-notice ul { margin: 6px 0 0 18px; }
+.cel-notice .cel-btn { margin-left: 8px; padding: 5px 12px; }
+.cel-notice-ok { background: #E2EFDA; border: 1px solid #70AD47; }
+.cel-notice-err { background: #fde2e2; border: 1px solid #c0392b; }
+.cel-claim-login { max-width: 420px; margin: 0 auto; }
+.cel-my-title { max-width: 1232px; margin: 28px auto 8px; }
+table.cel-my-claims { width: 100%; max-width: 1232px; margin: 0 auto; border-collapse: collapse; font-size: 14px; }
+table.cel-my-claims th, table.cel-my-claims td { border: 1px solid #c8d0dc; padding: 6px 8px; text-align: left; }
+table.cel-my-claims th { background: #D9E1F2; color: #1F4E78; }
+table.cel-my-claims .r { text-align: right; }
+
+/* ---------- print view ---------- */
+body.cel-print-body { margin: 0; background: #e9ecef; }
+.cel-toolbar {
+	position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+	padding: 10px 16px; background: #1F4E78; color: #fff; font: 14px Calibri, Carlito, "Segoe UI", Arial, sans-serif;
+}
+.cel-toolbar span { flex: 1 1 auto; opacity: .85; }
+.cel-toolbar .cel-btn-primary { background: #fff; color: #1F4E78 !important; border-color: #fff; }
+.cel-page { overflow-x: auto; padding: 24px 16px; }
+.cel-page .cel-frame { box-shadow: 0 2px 10px rgba(0, 0, 0, .15); }
+
+@page { size: A4 landscape; margin: 6mm; }
+@media print {
+	body.cel-print-body { background: #fff; }
+	.cel-toolbar, .cel-actions, .cel-hint, .cel-notice, .cel-my-title, .cel-my-claims { display: none !important; }
+	.cel-page { padding: 0; overflow: visible; }
+	.cel-page .cel-frame { box-shadow: none; zoom: 0.75; } /* fits the whole form on one A4 landscape page */
+	table.cel-sheet tr { break-inside: avoid; }
+}
