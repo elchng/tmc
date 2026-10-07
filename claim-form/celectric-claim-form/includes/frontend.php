@@ -13,11 +13,45 @@ function cel_claim_register_assets() {
 	if ( wp_style_is( 'cel-claim', 'registered' ) ) {
 		return;
 	}
-	wp_register_style( 'cel-claim', CEL_CLAIM_URL . 'assets/claim.css', array(), CEL_CLAIM_VERSION );
-	wp_register_script( 'cel-claim', CEL_CLAIM_URL . 'assets/claim.js', array(), CEL_CLAIM_VERSION, true );
-	if ( function_exists( 'wp_script_add_data' ) ) {
-		wp_script_add_data( 'cel-claim', 'strategy', 'defer' );
+	wp_register_style( 'cel-claim', CEL_CLAIM_URL . 'assets/claim.css', array(), cel_claim_asset_version( 'assets/claim.css' ) );
+	wp_register_script( 'cel-claim', CEL_CLAIM_URL . 'assets/claim.js', array(), cel_claim_asset_version( 'assets/claim.js' ), true );
+}
+
+/** Version string that changes whenever the file changes, so browsers and caches never keep an old copy. */
+function cel_claim_asset_version( $file ) {
+	$time = @filemtime( CEL_CLAIM_DIR . $file ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+	return CEL_CLAIM_VERSION . ( $time ? '.' . $time : '' );
+}
+
+/**
+ * Ask speed/optimisation plugins (LiteSpeed, WP Rocket, Cloudflare Rocket Loader,
+ * SiteGround, Autoptimize…) to leave the calculator script alone: combining or
+ * delaying it can stop the live totals from working.
+ */
+add_filter( 'script_loader_tag', 'cel_claim_script_tag', 10, 2 );
+function cel_claim_script_tag( $tag, $handle ) {
+	if ( 'cel-claim' !== $handle || false !== strpos( $tag, 'data-no-optimize' ) ) {
+		return $tag;
 	}
+	return str_replace( ' src=', ' data-cfasync="false" data-no-optimize="1" data-no-defer="1" data-no-minify="1" data-pagespeed-no-defer nowprocket src=', $tag );
+}
+
+/* WP Rocket: never delay or combine the calculator. */
+add_filter( 'rocket_delay_js_exclusions', 'cel_claim_optimizer_exclusions' );
+add_filter( 'rocket_exclude_js', 'cel_claim_optimizer_exclusions' );
+add_filter( 'rocket_exclude_defer_js', 'cel_claim_optimizer_exclusions' );
+/* LiteSpeed Cache. */
+add_filter( 'litespeed_optm_js_defer_exc', 'cel_claim_optimizer_exclusions' );
+add_filter( 'litespeed_optimize_js_excludes', 'cel_claim_optimizer_exclusions' );
+/* Autoptimize. */
+add_filter( 'autoptimize_filter_js_exclude', 'cel_claim_autoptimize_exclusions' );
+function cel_claim_optimizer_exclusions( $list ) {
+	$list   = is_array( $list ) ? $list : array();
+	$list[] = 'celectric-claim-form/assets/claim.js';
+	return $list;
+}
+function cel_claim_autoptimize_exclusions( $list ) {
+	return trim( (string) $list . ', celectric-claim-form/assets/claim.js', ', ' );
 }
 
 /** Block themes and page builders can render shortcodes before wp_enqueue_scripts runs. */
