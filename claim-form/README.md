@@ -1,151 +1,205 @@
-# Celectric Travel & Expense Claim Form (WordPress plugin)
+# Celectric Claim Forms (WordPress plugin) – v2
 
-This is an online version of the Excel file `Claim_and_travel_*.xlsx`. It works with
-WordPress and Elementor.
+This plugin puts two Celectric claim forms online:
 
-- **Staff log in** with their WordPress account and fill in the form. The form uses the
-  Excel layout and has the same dropdowns: Outstation Allowance, Meal Allowance and
-  Expense Category.
-- **Totals are calculated as staff type**: each row's allowance, Subtotal Section A,
-  Subtotal Section B and TOTAL AMOUNT CLAIMED. The server calculates them again on save,
-  using the fixed internal rates, so staff can't change the RM amounts.
-- **On save, one row goes to an Excel file on OneDrive.** It holds only the header details
-  and totals: Claim No, date, name, department, purpose, Subtotal A, Subtotal B, Grand
-  Total, and a link to the PDF.
-- **Print / Save as PDF** gives the same layout as the Excel sheet: logo, colours, column
-  widths and merged cells, on one A4 landscape page.
+- **Travel & Expense Claim**, from `Claim_and_travel_*.xlsx`
+- **Mileage Claim**, from `celectric_mileage_claim_calculator.xlsx`
+
+Staff log in, fill in a form and submit it. Each claim is saved in WordPress, prints to a
+PDF in the Excel layout, and has its totals sent to an Excel file on OneDrive and/or a
+Google Sheet.
 
 | File | What it is |
 |---|---|
-| `celectric-claim-form.zip` | The plugin. Upload it in WordPress. |
+| `celectric-claim-form.zip` | The plugin. Upload it in WordPress (see step 1). |
 | `celectric-claim-form/` | Source code of the plugin |
-| `Claims_Register.xlsx` | The register file to put on OneDrive. It holds one row per claim, in a table named `Claims`. |
+| `Claims_Register.xlsx` | The register file for OneDrive. It has two tabs: **Travel Claims** (table `TravelClaims`) and **Mileage Claims** (table `MileageClaims`). |
+| `celectric-claim-form/extras/google-apps-script.gs` | The script for the Google Sheets option |
+| `sample-*.pdf` | Example printouts of both forms |
+
+## What staff get
+
+- **Login**: anyone not logged in sees a staff login box instead of the form.
+- **The form**: on a computer it looks like the Excel sheet. On a phone it switches to
+  one field per line, with each row shown as a card. Only one blank row shows at a time;
+  filling it in shows the next.
+- **Live totals**: totals update as staff type. When a claim is saved, the server works
+  them out again from the rates in Settings, so staff can't change the amounts.
+- **Print / Save as PDF** opens the claim in the Excel layout on one A4 landscape page.
+  Staff choose *Save as PDF* in the print dialog.
+- **Claim history**: below each form is the list of that staff member's own claims,
+  newest first, 15 per page, each with a **PDF** button. Nothing expires, so a claim from
+  last year can still be downloaded. The shortcode `[celectric_my_claims]` shows all of a
+  person's claims (both forms) on one page.
+
+## Where claims are stored, and deleting them
+
+- Claims are stored in the WordPress database on your hosting: one private record per
+  claim, in `wp_posts` with type `cel_claim`, plus its details in `wp_postmeta`. They are
+  not public and never appear on the website.
+- Each claim keeps the rates it was submitted with. If you change a rate in Settings
+  later, old claims and their PDFs stay unchanged.
+- **Admins and Editors** see every claim in wp-admin → **Claims**. From there they can
+  filter by form, open the PDF, export a CSV and **Trash** claims (hover over a row, or
+  tick rows and use *Bulk actions → Move to Trash*). Trashed claims can be restored from
+  the **Trash** view or removed with **Delete Permanently**.
+- **Staff** (Subscribers) can't delete or edit claims. A trashed claim disappears from
+  their history and its PDF link stops working.
+- Deleting a claim in WordPress doesn't remove its row from the Excel or Google register.
+  Delete that row by hand if needed.
+- Your normal WordPress backups include the claims.
 
 ---
 
-## 1. Install the plugin (5 minutes)
+## 1. Install (5 minutes)
 
-1. In WordPress admin, go to **Plugins → Add New Plugin → Upload Plugin**. Choose
-   `celectric-claim-form.zip`, click **Install Now**, then **Activate**.
-2. A new menu called **Expense Claims** appears in the admin sidebar.
+1. WordPress admin → **Plugins → Add New Plugin → Upload Plugin**. Choose
+   `celectric-claim-form.zip`, then **Install Now** and **Activate**.
+   (If v1 is installed, WordPress asks to replace it. Choose *Replace current with
+   uploaded*. Existing claims are kept.)
+2. A **Claims** menu appears in the admin sidebar.
 
-## 2. Put the form on a page with Elementor
+## 2. Add the forms to pages with Elementor
 
-1. **Pages → Add New**, title it e.g. "Expense Claim", then click **Edit with Elementor**.
-2. Drag the **Shortcode** widget onto the page and enter:
+Create a page for each form, open it with **Edit with Elementor**, add a **Shortcode**
+widget and enter one of these:
 
-   ```
-   [celectric_claim_form]
-   ```
-3. Set the section/container to **Full Width**, because the form is as wide as the Excel
-   sheet. On phones it scrolls sideways.
-4. Publish. If you want it hidden from your public site, leave the page out of your menu
-   and send staff the link.
-
-Visitors who aren't logged in see a **Staff login** box on that page. Logged-in staff see
-the form and, below it, a list of their own submitted claims with **Print / PDF** links.
-
-Optional: the shortcode `[celectric_my_claims]` shows only the "My submitted claims" list,
-if you want it on a separate page.
-
-## 3. Create staff logins
-
-**Users → Add New User** for each staff member:
-- Username, email and **Display Name** (the form fills in *Claimant Name* from it).
-- Role: **Subscriber**. Subscribers can only submit and see their own claims.
-- People who need to see **everyone's** claims (HR / Finance) should be **Editor** or
-  **Administrator**.
-
-## 4. Send totals to Excel on OneDrive
-
-The plugin sends each new claim as JSON to a webhook URL. A free **Make.com** scenario
-takes it and adds a row to `Claims_Register.xlsx` on your OneDrive.
-
-### 4a. Put the register file on OneDrive
-Upload `Claims_Register.xlsx` to OneDrive, e.g. `Documents/Finance/Claims_Register.xlsx`.
-It already contains a table called **Claims**. Keep the table: the automation adds rows
-to it. You can delete the `TEST-0000` row once real claims are coming in.
-
-### 4b. Make.com scenario (free plan is enough)
-1. Sign in at make.com, then **Create a new scenario**.
-2. First module: **Webhooks → Custom webhook → Add**. Name it "Celectric claims" and
-   **copy the URL** (looks like `https://hook.eu2.make.com/abc123…`).
-3. In WordPress: **Expense Claims → Settings**. Paste the URL into **OneDrive webhook
-   URL** and click **Save Changes**.
-4. In Make, click **Run once**. Then in WordPress, click **Send test row**. Make now
-   knows the fields.
-5. Add a second module: **Microsoft 365 Excel → Add a Table Row**. Connect your Microsoft
-   account, then pick:
-   - Drive: *OneDrive*, File: `Claims_Register.xlsx`, Table: `Claims`
-   - Map each column to the webhook field:
-
-     | Excel column | Webhook field |
-     |---|---|
-     | Claim No | `claim_no` |
-     | Submission Date | `submission_date` |
-     | Claimant Name | `claimant_name` |
-     | Staff Email | `staff_email` |
-     | Department | `department` |
-     | Purpose | `purpose` |
-     | Destination | `destination` |
-     | Travel Period | `travel_period` |
-     | Subtotal A (RM) | `subtotal_a` |
-     | Subtotal B (RM) | `subtotal_b` |
-     | Grand Total (RM) | `grand_total` |
-     | Print / PDF Link | `print_url` |
-6. **Save** and switch the scenario **ON** (scheduling: *Immediately*).
-
-Each new claim then appears as a new row in the OneDrive Excel file within a few seconds.
-
-**Alternatives** use the same webhook URL and the same fields:
-- **Power Automate**: trigger *When an HTTP request is received* (a Premium connector),
-  then *Excel Online (Business) → Add a row into a table*.
-- **Zapier**: *Webhooks by Zapier → Catch Hook*, then *Microsoft Excel → Add Row*.
-
-### Checking it worked
-In **Expense Claims → All Claims**, the **OneDrive** column shows `Sent – date/time` or
-`Failed: …`. Each claim has a **Resend** link. **Export totals (CSV)** downloads all
-claims with the same columns, as a backup.
-
-Optional: under Settings, add a **Notify email** to receive an email with the totals for
-every new claim.
-
-## 5. Printing / PDF
-
-After submitting, staff click **Print / Save as PDF**, either in the green message or in
-"My submitted claims". It opens a print view with the Excel layout, and the browser's
-print dialog appears:
-- Printer / Destination: **Save as PDF**
-- Layout: **Landscape**, Paper: **A4** (both are set automatically)
-
-The whole form fits on one A4 landscape page. HR / Finance can open any claim's PDF from
-**Expense Claims → All Claims → PDF**.
-
-## Rules built in
-
-These come from the Excel form and its guideline box:
-
-| Item | Options |
+| Page | Shortcode |
 |---|---|
-| Outstation Allowance | None, Full Day (RM 80), Half Day (RM 40) |
-| Meal Allowance | None, Breakfast (RM 15), Lunch (RM 20), Dinner (RM 25), Breakfast + Lunch (RM 35), Lunch + Dinner (RM 45), Full Meals (RM 60) |
-| Expense Category | Hotel (Company-Approved), Toll Expenses, Parking Fees, Public Transport, Grab / Taxi, Flight / Train, Equipment Transport, Other |
+| Travel & Expense Claim | `[celectric_claim_form]` |
+| Mileage Claim | `[celectric_mileage_form]` |
+| My Claims (optional) | `[celectric_my_claims]` |
 
-- Required fields: Claimant Name, Purpose of Travel, Department / Project, and at least
-  one Section A or Section B row. Every Section B row needs a date, a category and an
-  amount.
-- Each section shows 9 / 7 rows like the Excel file. The **+ Add row** buttons allow up
-  to 40 rows per section.
-- A submitted claim can't be edited. To correct one, an admin deletes it in **Expense
-  Claims** and the staff member submits again.
-- To change the rates or categories, edit `cel_claim_outstation_rates()`,
-  `cel_claim_meal_rates()` and `cel_claim_expense_categories()` at the top of
-  `celectric-claim-form.php`.
-- The title, subtitle, guideline text and logo can be changed under **Expense Claims →
-  Settings**.
+Set the Elementor section/container to **Full Width**.
 
-### Differences from the Excel file
-- Amounts show 2 decimal places (`100.00`, `23.30`) instead of `100` / `23.3`.
-- The Section B subtotal label reads **SECTION B**. The Excel file says "SECTION C" by
-  mistake.
-- Submission Date is filled in automatically with the day the claim is submitted.
+## 3. Staff logins
+
+**Users → Add New User**, role **Subscriber**. The form fills in Claimant / Employee
+Name from the user's **Display Name**. HR / Finance users who need to see all claims
+should be **Editor** or **Administrator**.
+
+## 4. Rates and dropdown lists (Claims → Settings)
+
+| Tab | What you can change |
+|---|---|
+| **Travel & Expense** | Outstation Allowance options and amounts, Meal Allowance options and amounts, Expense categories, Guidelines box text, title / subtitle, number of rows shown |
+| **Mileage** | Vehicle types and RM per km (add more, e.g. `Van \| 0.90`), Purpose of Visit list, title, number of rows shown |
+| **Excel / Google Sheets** | Where each claim's totals are sent (see 5) |
+| **General** | Logo, email address(es) notified of every new claim |
+
+Rates are typed one per line as `Label | amount`:
+
+```
+None | 0
+Full Day | 80
+Half Day | 40
+```
+
+Staff see these as "Full Day (RM 80)", the same as the Excel form. When you change the
+travel rates, also update the **Guidelines box** text, because it is printed on the
+PDF. The mileage "Rate Options" line updates itself.
+
+## 5. Sending totals to Excel / Google Sheets
+
+Only the header details and totals are sent, one row per claim:
+
+| Form | Columns |
+|---|---|
+| Travel | Claim No, Submission Date, Claimant Name, Staff Email, Department, Purpose, Destination, Travel Period, Subtotal A, Subtotal B, Grand Total, PDF link |
+| Mileage | Claim No, Submission Date, Employee Name, Staff Email, Claim Period, Vehicle Type, Rate (RM/km), Total Distance (KM), Net Payable, PDF link |
+
+Sending happens in the background after the staff member submits, so they don't wait.
+The **Excel / Sheets** column in **Claims** shows *Sent* or the error for each
+destination, and has a **Send again** link. **Send test rows** on the settings tab
+checks the connection.
+
+You can use one, two or all three of these options.
+
+### Option A: Microsoft 365 direct (no Make, no monthly cost)
+
+The plugin writes straight into `Claims_Register.xlsx` through Microsoft Graph. This
+needs a **Microsoft 365 business** account (e.g. `info@mycelectric.com`). It does not
+work with a personal outlook.com OneDrive.
+
+1. Upload `Claims_Register.xlsx` to the OneDrive of the account that will own it, e.g.
+   into a folder `Finance`.
+2. Go to <https://entra.microsoft.com> → **App registrations → New registration**.
+   - Name: `Celectric Claim Forms`. Account type: *Single tenant*. Click **Register**.
+   - Copy the **Application (client) ID** and **Directory (tenant) ID**.
+3. **API permissions → Add a permission → Microsoft Graph → Application permissions →
+   `Files.ReadWrite.All`** → Add. Then click **Grant admin consent for Celectric**.
+4. **Certificates & secrets → New client secret** (24 months) and copy the **Value**.
+   Add a calendar reminder to renew it before it expires.
+5. WordPress → **Claims → Settings → Excel / Google Sheets**, section A:
+   - tick **Enable**
+   - paste the tenant ID, client ID and client secret
+   - OneDrive owner: `info@mycelectric.com` (the account from step 1)
+   - File path: `Finance/Claims_Register.xlsx`
+   - Table names: `TravelClaims` / `MileageClaims` (already set)
+   - **Save Changes**, then **Send test rows**.
+
+`Files.ReadWrite.All` lets the app write to any OneDrive in your organisation. To limit
+it to one SharePoint site, use the `Sites.Selected` permission and store the file in
+that site. Ask your IT provider if you need help with this.
+
+### Option B: Google Sheets (no Make, free)
+
+1. Create a Google Sheet, e.g. "Claims Register".
+2. **Extensions → Apps Script**. Replace the code with
+   `celectric-claim-form/extras/google-apps-script.gs` and change
+   `const SECRET = 'change-me';` to a random phrase.
+3. **Deploy → New deployment → Web app**, with *Execute as: Me* and *Who has access:
+   Anyone*. Authorise when asked and copy the **Web app URL** (ends in `/exec`).
+4. WordPress → **Claims → Settings → Excel / Google Sheets**, section B: paste the URL,
+   enter the same secret phrase, **Save Changes**, then **Send test rows**.
+
+The script creates the **Travel Claims** and **Mileage Claims** tabs with headings, and
+won't add the same claim number twice. If you need an Excel file, use *File → Download →
+Microsoft Excel (.xlsx)* in Google Sheets.
+
+### Option C: Make (already set up in your Make account)
+
+These are already in your Make organisation "My Lab":
+- Webhook **Celectric Claims (WordPress)**:
+  `https://hook.us1.make.com/7xq2na49r7ejqi09mrgnjdrjffh50quc`
+- Scenario **Celectric Claims → OneDrive Excel**: the webhook, then a router that sends
+  travel claims to table `TravelClaims` and mileage claims to table `MileageClaims`.
+  All columns are already mapped. The scenario is **off** until the connection below
+  exists.
+
+To finish it:
+1. Upload `Claims_Register.xlsx` to your OneDrive.
+2. Open the connection request and sign in with that Microsoft account:
+   <https://us1.make.com/178648/credentials-requests/inbox?requestId=1f7b0bdc-3192-4012-8a15-d6fd6970c242>
+3. In Make, open the scenario. In each of the two **Microsoft 365 Excel – Add a Table
+   Row** modules, choose the new connection and the workbook `Claims_Register.xlsx`.
+   Then switch the scenario **ON**. (Or tell Claude once the connection is done and it
+   can finish this step.)
+4. WordPress → **Claims → Settings → Excel / Google Sheets**, section C: paste the
+   webhook URL above, **Save**, then **Send test rows**.
+
+Make's Free plan allows 1,000 operations a month, and each claim uses about 2. It also
+allows 2 scenarios; your account now uses both (*Weekly Sales Report to Slack* and this
+one).
+
+## 6. Speed and mobile
+
+- CSS and JS (about 6 KB compressed, no jQuery) load only on pages that contain one of
+  the shortcodes. The rest of your site is not affected.
+- Sending to Excel / Google / Make runs after the page has been sent to the browser, so
+  submitting is quick.
+- The form, the claim history and the PDF view all fit a phone screen without sideways
+  scrolling. On a phone the PDF view is scaled down to fit, and still prints full-size
+  A4.
+
+## Differences from the Excel files
+
+- Amounts show 2 decimal places.
+- On the travel form, the Section B subtotal label reads **SECTION B**; the Excel file
+  says "SECTION C" by mistake.
+- On the mileage form, the "Total Distance (KM):" label in section 2 spans two cells so
+  it isn't cut off (in Excel it sits in the narrow No. column). The value moves one cell
+  to the right.
+- The Submission Date / Date is filled in automatically with the day the claim is
+  submitted.
+- A submitted claim can't be edited. HR deletes it and the staff member resubmits.

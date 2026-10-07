@@ -1,7 +1,8 @@
 <?php
 /**
- * Stand-alone print page for one claim. Opens the browser's print dialog,
- * where staff choose "Save as PDF". Expects: $claim, $settings, $mode.
+ * Stand-alone print page for one claim (no theme, loads only claim.css).
+ * Opens the browser's print dialog, where staff choose "Save as PDF".
+ * Expects: $claim, $mode.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -22,14 +23,28 @@ $file_name  = $claim['claim_no'] . ' - ' . $claim['claimant_name'];
 <body class="cel-print-body">
 	<div class="cel-toolbar">
 		<strong><?php echo esc_html( $claim['claim_no'] ); ?></strong>
-		<span>Choose <em>Save as PDF</em> as the printer · Layout: Landscape · Paper: A4</span>
+		<span>Destination: <em>Save as PDF</em> · Layout: Landscape · Paper: A4</span>
 		<button type="button" class="cel-btn cel-btn-primary" onclick="window.print()">Print / Save as PDF</button>
 	</div>
-	<div class="cel-page">
-		<?php include CEL_CLAIM_DIR . 'templates/sheet.php'; ?>
+	<div class="cel-page" id="cel-page">
+		<?php include CEL_CLAIM_DIR . 'templates/' . $claim['type'] . '-sheet.php'; ?>
 	</div>
-	<?php if ( $auto_print ) : ?>
-	<script>window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 300); });</script>
-	<?php endif; ?>
+	<script>
+	(function () {
+		// Shrink the A4 sheet to fit small screens (phones); printing uses the print CSS.
+		var page = document.getElementById('cel-page'), frame = page.querySelector('.cel-frame');
+		function fit() {
+			var w = page.clientWidth - 16, full = frame.offsetWidth;
+			frame.style.zoom = w < full ? (w / full).toFixed(3) : '';
+		}
+		window.addEventListener('resize', fit);
+		window.addEventListener('beforeprint', function () { frame.style.zoom = ''; });
+		window.addEventListener('afterprint', fit);
+		fit();
+		<?php if ( $auto_print ) : ?>
+		window.addEventListener('load', function () { setTimeout(function () { window.print(); }, 300); });
+		<?php endif; ?>
+	})();
+	</script>
 </body>
 </html>

@@ -1,11 +1,12 @@
 /*
- * Celectric Travel & Expense Claim Form
- * The .cel-sheet table reproduces the Excel sheet: Calibri, column widths
- * A–I, row heights, fills, borders and merged cells. Rules are scoped and
- * use !important on the few properties themes/Elementor commonly override.
+ * Celectric Claim Forms
+ * .cel-sheet tables reproduce the Excel sheets (Calibri, column widths,
+ * row heights, fills, borders, merged cells). On phones the editable sheet
+ * is restacked into cards; the print view always keeps the Excel layout.
+ * Rules use !important only where themes/Elementor commonly override tables.
  */
 
-/* Break out of narrow theme content columns so the full sheet fits on desktop; scrolls sideways on phones. */
+/* Break out of narrow theme content columns so the full sheet fits on desktop. */
 .cel-claim-wrap {
 	position: relative; left: 50%; transform: translateX(-50%);
 	width: min(1232px, calc(100vw - 32px)); max-width: none !important;
@@ -13,144 +14,118 @@
 }
 .cel-sheet-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
 
-/* ---------- the sheet ---------- */
-/* .cel-frame carries the black outer frame and the logo; cells use the Excel
-   gridline grey (#D9D9D9), header/subtotal rules are medium #1F4E78. */
+/* ================= shared sheet base ================= */
 .cel-frame {
-	position: relative;
-	width: 1230px;
-	margin: 0 auto;
-	border: 1px solid #000;
-	background: #fff;
-	-webkit-print-color-adjust: exact;
-	print-color-adjust: exact;
+	position: relative; margin: 0 auto; border: 1px solid #000; background: #fff;
+	-webkit-print-color-adjust: exact; print-color-adjust: exact;
 }
 .cel-frame .cel-logo {
-	position: absolute; left: 69px; top: 8px; width: 129px; height: 65px;
-	max-width: none !important; border: 0 !important; box-shadow: none !important; margin: 0 !important; z-index: 1;
+	position: absolute; z-index: 1; max-width: none !important; border: 0 !important;
+	box-shadow: none !important; margin: 0 !important; padding: 0 !important; background: none !important;
 }
 table.cel-sheet {
-	--cel-g: #D9D9D9;
-	--cel-n: #1F4E78;
-	border-collapse: collapse !important;
-	border-spacing: 0;
-	table-layout: fixed;
-	width: 1230px !important;
-	max-width: none !important;
-	margin: 0 !important;
-	border: 0 !important;
-	background: #fff;
-	color: #000;
+	border-collapse: collapse !important; border-spacing: 0; table-layout: fixed;
+	max-width: none !important; margin: 0 !important; border: 0 !important;
+	background: #fff; color: #000; line-height: 1.15;
 	font-family: Calibri, Carlito, "Segoe UI", Arial, sans-serif;
-	font-size: 13.3px; /* 10pt */
-	line-height: 1.15;
 }
 table.cel-sheet td {
-	border: 0 !important;
-	padding: 0 5px !important;
-	vertical-align: middle !important;
-	background: transparent;
-	color: inherit;
-	font: inherit;
-	text-align: left;
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
+	border: 0 !important; padding: 0 5px !important; vertical-align: middle !important;
+	background: transparent; color: inherit; font: inherit; text-align: left;
+	overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
 }
 table.cel-sheet tr { background: transparent !important; }
-table.cel-sheet tr.h21 { height: 21px; }
-table.cel-sheet tr.h24 { height: 24px; }
-table.cel-sheet tr.h26 { height: 26px; }
-table.cel-sheet tr.h29 { height: 29px; }
-table.cel-sheet tr.h32 { height: 32px; }
-table.cel-sheet tr.h40 { height: 40px; }
-
-table.cel-sheet .title { font-size: 21.3px; font-weight: 700; text-align: center; } /* 16pt */
-table.cel-sheet .subtitle { font-style: italic; text-align: center; }
-table.cel-sheet .sec {
-	background: #2F5496 !important; color: #fff !important;
-	font-size: 14.7px; font-weight: 700; /* 11pt */
-}
-table.cel-sheet .lbl { font-weight: 700; }
-table.cel-sheet .in,
-table.cel-sheet .row td,
-table.cel-sheet .head td,
-table.cel-sheet .tot,
-table.cel-sheet .sumlbl,
-table.cel-sheet .guide { border: 1px solid var(--cel-g) !important; }
-table.cel-sheet .in { background: #DCE6F1 !important; }
-table.cel-sheet .head td {
-	background: #D9E1F2 !important; color: var(--cel-n) !important;
-	font-weight: 700; text-align: center; white-space: normal;
-	border-bottom: 2px solid var(--cel-n) !important;
-}
 table.cel-sheet .c { text-align: center; }
 table.cel-sheet .r { text-align: right; }
-table.cel-sheet .b { font-weight: 700; }
-table.cel-sheet .tot { background: #E2EFDA !important; text-align: right; }
-table.cel-sheet .sub {
-	background: #F2F2F2 !important; font-weight: 700; text-align: right;
-	border-top: 1px solid var(--cel-g) !important;
+table.cel-sheet .b, table.cel-sheet .lbl { font-weight: 700; }
+table.cel-sheet .cel-auto { color: #6b7a90; font-size: 11px; margin-left: 4px; }
+
+/* ================= Travel & Expense (A–I = 1230px) ================= */
+.cel-travel { width: 1230px; }
+.cel-travel .cel-logo { left: 69px; top: 8px; width: 129px; height: 65px; }
+.cel-travel table.cel-sheet { --cel-g: #D9D9D9; --cel-n: #1F4E78; width: 1230px !important; font-size: 13.3px; /* 10pt */ }
+.cel-travel tr.h21 { height: 21px; } .cel-travel tr.h24 { height: 24px; } .cel-travel tr.h26 { height: 26px; }
+.cel-travel tr.h29 { height: 29px; } .cel-travel tr.h32 { height: 32px; } .cel-travel tr.h40 { height: 40px; }
+.cel-travel .title { font-size: 21.3px; font-weight: 700; text-align: center !important; }
+.cel-travel .subtitle { font-style: italic; text-align: center !important; }
+.cel-travel .sec { background: #2F5496 !important; color: #fff !important; font-size: 14.7px; font-weight: 700; }
+.cel-travel .in, .cel-travel .row td, .cel-travel .head td, .cel-travel .tot,
+.cel-travel .sumlbl, .cel-travel .guide { border: 1px solid var(--cel-g) !important; }
+.cel-travel .in { background: #DCE6F1 !important; }
+.cel-travel .head td {
+	background: #D9E1F2 !important; color: var(--cel-n) !important; font-weight: 700;
+	text-align: center; white-space: normal; border-bottom: 2px solid var(--cel-n) !important;
 }
-table.cel-sheet .sub,
-table.cel-sheet .subtot { border-bottom: 2px solid var(--cel-n) !important; }
-table.cel-sheet .guide {
-	background: #F2F2F2 !important; font-size: 12px; font-style: italic; /* 9pt */
-	vertical-align: top !important; white-space: normal; padding: 2px 5px !important;
-	line-height: 1.25;
+.cel-travel .tot { background: #E2EFDA !important; text-align: right; }
+.cel-travel .sub { background: #F2F2F2 !important; font-weight: 700; text-align: right; border-top: 1px solid var(--cel-g) !important; }
+.cel-travel .sub, .cel-travel .subtot { border-bottom: 2px solid var(--cel-n) !important; }
+.cel-travel .guide {
+	background: #F2F2F2 !important; font-size: 12px; font-style: italic; vertical-align: top !important;
+	white-space: normal; padding: 2px 5px !important; line-height: 1.25; border-bottom: 0 !important;
 }
-table.cel-sheet .sumlbl { font-weight: 700; text-align: right; }
-table.cel-sheet .grand {
-	background: var(--cel-n) !important; color: #fff !important;
-	font-size: 14.7px; font-weight: 700; text-align: right;
+.cel-travel .sumlbl { font-weight: 700; text-align: right; }
+.cel-travel .grand {
+	background: var(--cel-n) !important; color: #fff !important; font-size: 14.7px; font-weight: 700; text-align: right;
 	border-top: 1px solid var(--cel-g) !important; border-bottom: 3px double var(--cel-n) !important;
 }
 /* Outer edges belong to .cel-frame (black), so drop the grey cell edges there. */
-table.cel-sheet tr:not(.gr) > td:first-child { border-left: 0 !important; }
-table.cel-sheet tr > td:last-child { border-right: 0 !important; }
-table.cel-sheet .guide { border-bottom: 0 !important; }
+.cel-travel tr:not(.gr) > td:first-child { border-left: 0 !important; }
+.cel-travel tr > td:last-child { border-right: 0 !important; }
 
-/* ---------- editable cells ---------- */
-table.cel-sheet.is-edit .in { padding: 0 !important; }
+/* ================= Mileage (A–I = 1023px) ================= */
+.cel-mileage { width: 1023px; }
+.cel-mileage .cel-logo { left: 1px; top: 1px; width: 104px; height: 52px; }
+.cel-mileage table.cel-sheet { width: 1023px !important; font-size: 14.7px; /* 11pt */ }
+.cel-mileage table.cel-sheet td { border: 1px solid #000 !important; padding: 0 3px !important; }
+.cel-mileage table.cel-sheet .lbl { text-overflow: clip; }
+.cel-mileage tr.m20 { height: 20px; } .cel-mileage tr.m26 { height: 26px; } .cel-mileage tr.m29 { height: 29px; }
+.cel-mileage tr.m32 { height: 32px; } .cel-mileage tr.m33 { height: 33px; }
+.cel-mileage .mtitle { font-size: 18.7px; font-weight: 700; text-align: center !important; } /* 14pt */
+.cel-mileage .msec { background: #4472C4 !important; color: #fff !important; font-weight: 700; }
+.cel-mileage .mhead td { background: #2F5496 !important; color: #fff !important; font-weight: 700; text-align: center; white-space: normal; }
+.cel-mileage .lb { background: #DAE3F3 !important; }
+.cel-mileage .veh { background: #DCE6F1 !important; }
+.cel-mileage .tot { background: #E2EFDA !important; }
+.cel-mileage .ropt { font-size: 13.3px; font-style: italic; }
+.cel-mileage .row.stripe td { background: #F9FAFB !important; }
+.cel-mileage .mtot-l { background: #D6DCE4 !important; font-weight: 700; text-align: right; }
+.cel-mileage .mnet { background: #2F5496 !important; color: #fff !important; font-weight: 700; font-size: 16px; } /* 12pt */
+.cel-mileage tr:first-child td, .cel-mileage tr.datebar td:nth-child(-n+2) { border-left-color: transparent !important; }
+
+/* ================= editable cells (desktop) ================= */
+@media (min-width: 861px) {
+	table.cel-sheet.is-edit .in,
+	table.cel-sheet.is-edit .row td:not(.num):not(.tot) { padding: 0 !important; }
+}
+.cel-mileage table.cel-sheet.is-edit tr.m20 { height: 26px; }
 table.cel-sheet.is-edit input,
 table.cel-sheet.is-edit select {
-	all: unset;
-	box-sizing: border-box;
-	display: block;
-	width: 100%;
-	height: 25px;
-	padding: 0 5px;
-	font: inherit;
-	color: #000;
-	text-align: inherit;
-	background: transparent;
-	cursor: text;
+	all: unset; box-sizing: border-box; display: block; width: 100%; height: 25px; padding: 0 5px;
+	font: inherit; color: #000; text-align: inherit; background: transparent; cursor: text;
 }
 table.cel-sheet.is-edit select {
 	cursor: pointer; line-height: 25px; padding-right: 18px; text-align-last: inherit;
 	background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%231F4E78'/%3E%3C/svg%3E") no-repeat right 6px center;
 }
-@media print { table.cel-sheet.is-edit select { background: none; } }
 table.cel-sheet.is-edit .c select { text-align-last: center; }
 table.cel-sheet.is-edit input[type="number"] { text-align: right; -moz-appearance: textfield; }
 table.cel-sheet.is-edit input::-webkit-outer-spin-button,
 table.cel-sheet.is-edit input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 table.cel-sheet.is-edit input:focus,
-table.cel-sheet.is-edit select:focus { outline: 2px solid #2F5496; outline-offset: -2px; background: #fff; }
-table.cel-sheet .cel-auto { color: #6b7a90; font-size: 11px; }
-table.cel-sheet.is-edit .in.fr { padding: 0 5px !important; }
+table.cel-sheet.is-edit select:focus { outline: 2px solid #2F5496; outline-offset: -2px; background-color: #fff; }
 
-/* ---------- page furniture ---------- */
+/* ================= page furniture ================= */
 .cel-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 14px auto 6px; max-width: 1232px; }
 .cel-spacer { flex: 1 1 auto; }
 .cel-btn {
 	display: inline-block; padding: 9px 16px; border-radius: 4px; border: 1px solid #2F5496;
 	font: 600 14px/1.2 Calibri, Carlito, "Segoe UI", Arial, sans-serif; text-decoration: none !important;
-	cursor: pointer; background: #fff; color: #2F5496 !important;
+	cursor: pointer; background: #fff; color: #2F5496 !important; text-align: center;
 }
 .cel-btn-primary { background: #2F5496; color: #fff !important; }
 .cel-btn-primary:hover { background: #1F4E78; }
 .cel-btn-light:hover { background: #D9E1F2; }
+.cel-btn[disabled] { opacity: .6; cursor: progress; }
 .cel-hint { max-width: 1232px; margin: 4px auto 24px; font-size: 13px; color: #555; }
 .cel-notice { max-width: 1232px; margin: 0 auto 14px; padding: 12px 14px; border-radius: 4px; font-size: 14px; }
 .cel-notice ul { margin: 6px 0 0 18px; }
@@ -158,28 +133,101 @@ table.cel-sheet.is-edit .in.fr { padding: 0 5px !important; }
 .cel-notice-ok { background: #E2EFDA; border: 1px solid #70AD47; }
 .cel-notice-err { background: #fde2e2; border: 1px solid #c0392b; }
 .cel-claim-login { max-width: 420px; margin: 0 auto; }
-.cel-my-title { max-width: 1232px; margin: 28px auto 8px; }
-table.cel-my-claims { width: 100%; max-width: 1232px; margin: 0 auto; border-collapse: collapse; font-size: 14px; }
-table.cel-my-claims th, table.cel-my-claims td { border: 1px solid #c8d0dc; padding: 6px 8px; text-align: left; }
+.cel-history { max-width: 1232px; margin: 0 auto; }
+.cel-my-title { margin: 28px 0 8px; }
+table.cel-my-claims { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.cel-my-claims th, table.cel-my-claims td { border: 1px solid #c8d0dc; padding: 6px 8px; text-align: left; vertical-align: middle; }
 table.cel-my-claims th { background: #D9E1F2; color: #1F4E78; }
 table.cel-my-claims .r { text-align: right; }
+table.cel-my-claims .cel-btn { padding: 4px 12px; }
+.cel-pager { display: flex; gap: 12px; align-items: center; justify-content: center; margin: 12px 0; }
 
-/* ---------- print view ---------- */
+/* ================= phones & small tablets: stacked form ================= */
+@media (max-width: 860px) {
+	.cel-claim-wrap { width: calc(100vw - 24px); }
+	.cel-sheet-scroll { overflow: visible; }
+	.cel-claim-wrap .cel-frame { width: auto !important; border: 0; }
+	.cel-claim-wrap .cel-logo { position: static; display: block; margin: 0 auto 4px !important; }
+	.cel-claim-wrap table.cel-sheet.is-edit,
+	.cel-claim-wrap table.cel-sheet.is-edit tbody,
+	.cel-claim-wrap table.cel-sheet.is-edit tr,
+	.cel-claim-wrap table.cel-sheet.is-edit td { display: block; width: auto !important; height: auto !important; }
+	.cel-claim-wrap table.cel-sheet.is-edit colgroup,
+	.cel-claim-wrap table.cel-sheet.is-edit .blank,
+	.cel-claim-wrap table.cel-sheet.is-edit .head,
+	.cel-claim-wrap table.cel-sheet.is-edit .mhead,
+	.cel-claim-wrap table.cel-sheet.is-edit .datebar,
+	.cel-claim-wrap table.cel-sheet.is-edit .pad,
+	.cel-claim-wrap table.cel-sheet.is-edit .last,
+	.cel-claim-wrap table.cel-sheet.is-edit .row.is-empty ~ .row.is-empty { display: none !important; }
+	.cel-claim-wrap table.cel-sheet.is-edit td {
+		border: 0 !important; white-space: normal; overflow: visible; text-align: left;
+		padding: 0 !important; font-size: 15px;
+	}
+	.cel-claim-wrap table.cel-sheet.is-edit .title, .cel-claim-wrap table.cel-sheet.is-edit .mtitle { text-align: center !important; font-size: 20px; padding: 4px 0 !important; }
+	.cel-claim-wrap table.cel-sheet.is-edit .subtitle { text-align: center !important; padding-bottom: 8px !important; }
+	.cel-claim-wrap table.cel-sheet.is-edit .sec, .cel-claim-wrap table.cel-sheet.is-edit .msec {
+		margin-top: 18px; padding: 9px 12px !important; border-radius: 6px 6px 0 0; font-size: 15px;
+	}
+	/* label above field */
+	.cel-claim-wrap table.cel-sheet.is-edit .info td.lbl, .cel-claim-wrap table.cel-sheet.is-edit .info .ropt-l { padding: 10px 2px 4px !important; font-size: 14px; }
+	.cel-claim-wrap table.cel-sheet.is-edit .info .in { border: 1px solid #b9c6d8 !important; border-radius: 6px; padding: 0 10px !important; min-height: 44px; display: flex !important; align-items: center; }
+	.cel-claim-wrap table.cel-sheet.is-edit .info .tot, .cel-claim-wrap table.cel-sheet.is-edit .info .ropt { padding: 6px 2px !important; background: none !important; }
+	.cel-claim-wrap table.cel-sheet.is-edit input,
+	.cel-claim-wrap table.cel-sheet.is-edit select { height: 44px; line-height: 44px; font-size: 16px; padding: 0 2px; } /* 16px stops iOS zoom */
+	.cel-claim-wrap table.cel-sheet.is-edit select { padding-right: 22px; text-align-last: left !important; }
+	/* each row becomes a card */
+	.cel-claim-wrap .is-edit .row {
+		margin: 10px 0; border: 1px solid #b9c6d8; border-radius: 8px; overflow: hidden; background: #fff !important;
+	}
+	.cel-claim-wrap table.cel-sheet.is-edit .row td { display: grid !important; grid-template-columns: 38% 1fr; align-items: center; min-height: 44px; border-top: 1px solid #e3e8ef !important; background: #fff !important; padding: 0 10px !important; }
+	.cel-claim-wrap .is-edit .row td::before { content: attr(data-label); font-size: 13px; color: #44546a; font-weight: 600; }
+	.cel-claim-wrap table.cel-sheet.is-edit .row td.num { display: block !important; min-height: 0; background: #D9E1F2 !important; color: #1F4E78; font-weight: 700; padding: 6px 10px !important; border-top: 0 !important; }
+	.cel-claim-wrap .is-edit .row td.num::before { content: "Item "; color: inherit; font-size: inherit; }
+	.cel-claim-wrap table.cel-sheet.is-edit .row td.tot { text-align: right; font-weight: 700; padding: 10px !important; }
+	/* totals as label / value pairs */
+	.cel-claim-wrap .is-edit .subrow, .cel-claim-wrap .is-edit .sumrow {
+		display: grid !important; grid-template-columns: 1fr auto; gap: 0; border: 1px solid #b9c6d8; border-radius: 6px; overflow: hidden; margin: 8px 0;
+	}
+	.cel-claim-wrap table.cel-sheet.is-edit .subrow td, .cel-claim-wrap table.cel-sheet.is-edit .sumrow td { padding: 10px !important; font-weight: 700; }
+	.cel-claim-wrap table.cel-sheet.is-edit .sumrow td.guide { font-weight: 400; }
+	.cel-claim-wrap .is-edit .row td input, .cel-claim-wrap .is-edit .row td select {
+		background-color: #F3F6FA !important; border: 1px solid #d5dde8 !important; border-radius: 5px; margin: 5px 0; height: 40px !important; line-height: 40px !important; padding: 0 8px !important;
+	}
+	.cel-claim-wrap .is-edit .subrow td:nth-child(even), .cel-claim-wrap .is-edit .sumrow td:nth-child(even) { text-align: right !important; }
+	.cel-claim-wrap .is-edit .sumrow .guide { grid-column: 1 / -1; font-weight: 400; font-size: 13px; order: 9; }
+	.cel-claim-wrap .is-edit .sumrow:has(.guide) { grid-template-columns: 1fr auto; }
+	.cel-claim-wrap .is-edit .grand { border-bottom: 0 !important; }
+	.cel-actions { position: sticky; bottom: 0; z-index: 5; background: #fff; padding: 10px 0; box-shadow: 0 -6px 12px rgba(0, 0, 0, .06); }
+	.cel-actions .cel-btn { flex: 1 1 auto; }
+	.cel-actions .cel-spacer { display: none; }
+	/* history list as cards */
+	table.cel-my-claims thead { display: none; }
+	table.cel-my-claims, table.cel-my-claims tbody, table.cel-my-claims tr, table.cel-my-claims td { display: block; }
+	table.cel-my-claims tr { border: 1px solid #c8d0dc; border-radius: 8px; margin: 10px 0; padding: 6px 10px; }
+	table.cel-my-claims td { border: 0; padding: 3px 0; display: flex; justify-content: space-between; gap: 12px; text-align: right; }
+	table.cel-my-claims td::before { content: attr(data-label); color: #44546a; font-weight: 600; text-align: left; }
+	table.cel-my-claims td.cel-pdf { justify-content: flex-end; padding-top: 6px; }
+}
+
+/* ================= print view ================= */
 body.cel-print-body { margin: 0; background: #e9ecef; }
 .cel-toolbar {
-	position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+	position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center;
 	padding: 10px 16px; background: #1F4E78; color: #fff; font: 14px Calibri, Carlito, "Segoe UI", Arial, sans-serif;
 }
 .cel-toolbar span { flex: 1 1 auto; opacity: .85; }
 .cel-toolbar .cel-btn-primary { background: #fff; color: #1F4E78 !important; border-color: #fff; }
-.cel-page { overflow-x: auto; padding: 24px 16px; }
+.cel-page { overflow-x: hidden; padding: 24px 8px; }
 .cel-page .cel-frame { box-shadow: 0 2px 10px rgba(0, 0, 0, .15); }
 
 @page { size: A4 landscape; margin: 6mm; }
 @media print {
 	body.cel-print-body { background: #fff; }
-	.cel-toolbar, .cel-actions, .cel-hint, .cel-notice, .cel-my-title, .cel-my-claims { display: none !important; }
+	.cel-toolbar { display: none !important; }
 	.cel-page { padding: 0; overflow: visible; }
-	.cel-page .cel-frame { box-shadow: none; zoom: 0.75; } /* fits the whole form on one A4 landscape page */
+	.cel-page .cel-frame { box-shadow: none; }
+	.cel-page .cel-travel { zoom: 0.75 !important; } /* whole form on one A4 landscape page */
+	.cel-page .cel-mileage { zoom: 1 !important; }
 	table.cel-sheet tr { break-inside: avoid; }
 }
