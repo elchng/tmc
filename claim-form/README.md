@@ -1,4 +1,4 @@
-# Celectric Claim Forms (WordPress plugin) – v2
+# Celectric Claim Forms (WordPress plugin) – v2.1
 
 This plugin puts two Celectric claim forms online:
 
@@ -13,7 +13,7 @@ Google Sheet.
 |---|---|
 | `celectric-claim-form.zip` | The plugin. Upload it in WordPress (see step 1). |
 | `celectric-claim-form/` | Source code of the plugin |
-| `Claims_Register.xlsx` | The register file for OneDrive. It has two tabs: **Travel Claims** (table `TravelClaims`) and **Mileage Claims** (table `MileageClaims`). |
+| `Claims_Register.xlsx` | The register file (also built into the plugin, which can create it in OneDrive for you). It has two tabs: **Travel Claims** (table `TravelClaims`) and **Mileage Claims** (table `MileageClaims`). |
 | `celectric-claim-form/extras/google-apps-script.gs` | The script for the Google Sheets option |
 | `sample-*.pdf` | Example printouts of both forms |
 
@@ -117,30 +117,48 @@ You can use one, two or all three of these options.
 
 ### Option A: Microsoft 365 direct (no Make, no monthly cost)
 
-The plugin writes straight into `Claims_Register.xlsx` through Microsoft Graph. This
-needs a **Microsoft 365 business** account (e.g. `info@mycelectric.com`). It does not
-work with a personal outlook.com OneDrive.
+The plugin writes straight into an Excel file in OneDrive through Microsoft Graph. You
+pick the folder and file from inside WordPress. This needs a **Microsoft 365 business**
+account (e.g. `info@mycelectric.com`). It does not work with a personal outlook.com
+OneDrive.
 
-1. Upload `Claims_Register.xlsx` to the OneDrive of the account that will own it, e.g.
-   into a folder `Finance`.
-2. Go to <https://entra.microsoft.com> → **App registrations → New registration**.
+**One-time app registration (about 10 minutes, done by a Microsoft 365 admin):**
+
+1. Go to <https://entra.microsoft.com> → **App registrations → New registration**.
    - Name: `Celectric Claim Forms`. Account type: *Single tenant*. Click **Register**.
    - Copy the **Application (client) ID** and **Directory (tenant) ID**.
-3. **API permissions → Add a permission → Microsoft Graph → Application permissions →
+2. **API permissions → Add a permission → Microsoft Graph → Application permissions →
    `Files.ReadWrite.All`** → Add. Then click **Grant admin consent for Celectric**.
-4. **Certificates & secrets → New client secret** (24 months) and copy the **Value**.
+3. **Certificates & secrets → New client secret** (24 months) and copy the **Value**.
    Add a calendar reminder to renew it before it expires.
-5. WordPress → **Claims → Settings → Excel / Google Sheets**, section A:
-   - tick **Enable**
-   - paste the tenant ID, client ID and client secret
-   - OneDrive owner: `info@mycelectric.com` (the account from step 1)
-   - File path: `Finance/Claims_Register.xlsx`
-   - Table names: `TravelClaims` / `MileageClaims` (already set)
-   - **Save Changes**, then **Send test rows**.
 
-`Files.ReadWrite.All` lets the app write to any OneDrive in your organisation. To limit
-it to one SharePoint site, use the `Sites.Selected` permission and store the file in
-that site. Ask your IT provider if you need help with this.
+**In WordPress, go to Claims → Settings → Excel / Google Sheets, section A:**
+
+4. Tick **Enable**. Paste the tenant ID, client ID and client secret. Enter the
+   **OneDrive owner** (the Microsoft 365 user whose OneDrive should hold the file,
+   e.g. `info@mycelectric.com`). Click **Save Changes**.
+5. Next to **Excel file**, click **Browse OneDrive…**:
+   - Click folders to open them, and **↑ Up** to go back.
+   - Click an Excel file and **Use this file** to choose it, **or**
+   - click **Create Claims_Register.xlsx in this folder**. The plugin uploads a
+     ready-made register with the *Travel Claims* and *Mileage Claims* tables into the
+     folder you're in. If a file with that name already exists, OneDrive names the new
+     one "Claims_Register 1.xlsx".
+6. The plugin reads the tables in the chosen file and picks the right ones. If you chose
+   your own workbook, select which table receives travel claims and which receives
+   mileage claims, then click **Save Changes**. Each table needs the same columns, in
+   the same order, as the table in section 5 above.
+7. Click **Send test rows**. Two test rows (`TEST-0000`, `TEST-0001`) should appear in
+   the file. Delete them afterwards.
+
+The file is remembered by its OneDrive ID, so it keeps working if someone renames it or
+moves it to another folder. If you change the OneDrive owner, choose the file again.
+Under **Type the path instead** you can enter a path such as
+`Finance/Claims_Register.xlsx` instead of browsing.
+
+`Files.ReadWrite.All` lets the app read and write files in any OneDrive in your
+organisation. It needs that to show the folder browser. Keep the client secret private;
+it is only stored in your WordPress database and never shown again after saving.
 
 ### Option B: Google Sheets (no Make, free)
 

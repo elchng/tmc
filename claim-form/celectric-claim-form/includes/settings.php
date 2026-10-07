@@ -45,7 +45,9 @@ function cel_claim_default_settings() {
 		'ms_client_id'       => '',
 		'ms_client_secret'   => '',
 		'ms_user'            => '',
-		'ms_path'            => 'Claims_Register.xlsx',
+		'ms_path'            => '',
+		'ms_item_id'         => '',
+		'ms_tables'          => '',
 		'ms_table_travel'    => 'TravelClaims',
 		'ms_table_mileage'   => 'MileageClaims',
 	);
@@ -135,12 +137,12 @@ function cel_claim_sanitize_settings( $in ) {
 		return array_key_exists( $k, $in );
 	};
 
-	foreach ( array( 'travel_title', 'travel_subtitle', 'mileage_title', 'ms_tenant', 'ms_client_id', 'ms_user', 'ms_path', 'ms_table_travel', 'ms_table_mileage', 'google_secret' ) as $k ) {
+	foreach ( array( 'travel_title', 'travel_subtitle', 'mileage_title', 'ms_tenant', 'ms_client_id', 'ms_user', 'ms_path', 'ms_item_id', 'ms_table_travel', 'ms_table_mileage', 'google_secret' ) as $k ) {
 		if ( $has( $k ) ) {
 			$out[ $k ] = sanitize_text_field( $in[ $k ] );
 		}
 	}
-	foreach ( array( 'travel_outstation', 'travel_meals', 'travel_categories', 'travel_guidelines', 'mileage_vehicles', 'mileage_purposes' ) as $k ) {
+	foreach ( array( 'travel_outstation', 'travel_meals', 'travel_categories', 'travel_guidelines', 'mileage_vehicles', 'mileage_purposes', 'ms_tables' ) as $k ) {
 		if ( $has( $k ) ) {
 			$out[ $k ] = sanitize_textarea_field( $in[ $k ] );
 		}
@@ -172,6 +174,17 @@ function cel_claim_sanitize_settings( $in ) {
 	// Checkbox: only meaningful when the tab that shows it was submitted.
 	if ( ( $in['_tab'] ?? '' ) === 'sync' || $has( 'ms_enabled' ) ) {
 		$out['ms_enabled'] = empty( $in['ms_enabled'] ) ? 0 : 1;
+	}
+	// A path typed by hand replaces the file chosen with the OneDrive browser.
+	if ( $has( 'ms_path_manual' ) && '' !== trim( (string) $in['ms_path_manual'] ) ) {
+		$out['ms_path']    = trim( sanitize_text_field( $in['ms_path_manual'] ), '/' );
+		$out['ms_item_id'] = '';
+	}
+	// A different OneDrive owner means the chosen file no longer applies.
+	if ( $has( 'ms_user' ) && strtolower( trim( $in['ms_user'] ) ) !== strtolower( trim( (string) cel_claim_settings()['ms_user'] ) ) && ! $has( 'ms_item_id' ) ) {
+		$out['ms_item_id'] = '';
+		$out['ms_path']    = '';
+		$out['ms_tables']  = '';
 	}
 	// The client secret is never printed back; an empty box keeps the saved one.
 	if ( $has( 'ms_client_secret' ) && '' !== trim( (string) $in['ms_client_secret'] ) ) {
@@ -258,9 +271,7 @@ function cel_claim_settings_page() {
 				$field( 'ms_client_id', 'Application (client) ID', '', 'text', 'regular-text code' );
 				$field( 'ms_client_secret', 'Client secret', 'Stored in the WordPress database; never shown again.', 'secret', 'regular-text code' );
 				$field( 'ms_user', 'OneDrive owner', 'Email of the Microsoft 365 user whose OneDrive holds the file, e.g. <code>info@mycelectric.com</code>.' );
-				$field( 'ms_path', 'File path in OneDrive', 'Relative to the OneDrive root, e.g. <code>Finance/Claims_Register.xlsx</code>.', 'text', 'regular-text code' );
-				$field( 'ms_table_travel', 'Table name – travel claims', '', 'text', 'regular-text code' );
-				$field( 'ms_table_mileage', 'Table name – mileage claims', '', 'text', 'regular-text code' );
+				cel_claim_onedrive_fields( $s, $n );
 				echo '<tr><td colspan="2" style="padding-left:0"><h2 style="margin:0">B. Google Sheets (no Make)</h2></td></tr>';
 				$field( 'google_url', 'Apps Script web app URL', 'Deploy <code>google-apps-script.gs</code> from the plugin download as a web app and paste its <code>https://script.google.com/macros/s/…/exec</code> URL here.', 'url', 'large-text code' );
 				$field( 'google_secret', 'Shared secret', 'Any random text. Put the same text in the script’s <code>SECRET</code> line so only this website can write to your sheet.', 'text', 'regular-text code' );
@@ -286,4 +297,51 @@ function cel_claim_settings_page() {
 		<?php endif; ?>
 	</div>
 	<?php
+}
+
+/** "Excel file" picker and table choices for the Microsoft 365 section. */
+function cel_claim_onedrive_fields( $s, $n ) {
+	$tables = cel_claim_lines( $s['ms_tables'] );
+	?>
+	<tr>
+		<th scope="row">Excel file</th>
+		<td>
+			<div id="cel-od">
+				<p>
+					<span class="dashicons dashicons-media-spreadsheet" aria-hidden="true"></span>
+					<strong id="cel-od-current"><?php echo $s['ms_path'] ? esc_html( $s['ms_path'] ) : 'No file chosen yet'; ?></strong>
+					<button type="button" class="button" id="cel-od-browse" style="margin-left:8px">Browse OneDrive…</button>
+				</p>
+				<div id="cel-od-panel" hidden style="max-width:640px;border:1px solid #c3c4c7;background:#fff;border-radius:4px">
+					<div style="display:flex;gap:8px;align-items:center;padding:8px 10px;border-bottom:1px solid #dcdcde;background:#f6f7f7">
+						<button type="button" class="button button-small" id="cel-od-up">↑ Up</button>
+						<code id="cel-od-path" style="flex:1;background:none">OneDrive</code>
+						<button type="button" class="button button-small" id="cel-od-close">Close</button>
+					</div>
+					<ul id="cel-od-list" style="margin:0;max-height:320px;overflow:auto"></ul>
+					<div style="padding:8px 10px;border-top:1px solid #dcdcde;background:#f6f7f7">
+						<button type="button" class="button" id="cel-od-create">Create Claims_Register.xlsx in this folder</button>
+					</div>
+				</div>
+				<p id="cel-od-msg" class="description" aria-live="polite"></p>
+				<p class="description">Save the sign-in details above first. Open folders, then click your Excel file to choose it – or use “Create Claims_Register.xlsx in this folder” to make a ready-made register there. The file is remembered even if it is later renamed or moved.</p>
+				<details style="margin-top:6px"><summary>Type the path instead</summary>
+					<p><input type="text" class="regular-text code" name="<?php echo esc_attr( $n ); ?>[ms_path_manual]" value="" placeholder="Finance/Claims_Register.xlsx"> <span class="description">Relative to the OneDrive root. Leave blank to keep the file chosen above.</span></p>
+				</details>
+			</div>
+		</td>
+	</tr>
+	<?php
+	foreach ( array( 'ms_table_travel' => 'Table for travel claims', 'ms_table_mileage' => 'Table for mileage claims' ) as $k => $label ) {
+		echo '<tr><th scope="row"><label for="cel_' . esc_attr( $k ) . '">' . esc_html( $label ) . '</label></th><td>';
+		echo '<select id="cel_' . esc_attr( $k ) . '" name="' . esc_attr( $n . '[' . $k . ']' ) . '" data-cel-od-table>';
+		$opts = $tables;
+		if ( ! in_array( $s[ $k ], $opts, true ) ) {
+			array_unshift( $opts, $s[ $k ] );
+		}
+		foreach ( $opts as $t ) {
+			echo '<option value="' . esc_attr( $t ) . '"' . selected( $s[ $k ], $t, false ) . '>' . esc_html( $t . ( $tables && ! in_array( $t, $tables, true ) ? ' (not in this file)' : '' ) ) . '</option>';
+		}
+		echo '</select></td></tr>';
+	}
 }
