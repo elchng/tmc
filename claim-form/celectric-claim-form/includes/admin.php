@@ -56,7 +56,11 @@ function cel_claim_column_value( $col, $post_id ) {
 			if ( 'travel' === $type ) {
 				echo '<br><small>A ' . esc_html( cel_claim_money( $data['subtotal_a'] ?? 0 ) ) . ' + B ' . esc_html( cel_claim_money( $data['subtotal_b'] ?? 0 ) ) . '</small>';
 			} else {
-				echo '<br><small>' . esc_html( number_format( (float) ( $data['total_km'] ?? 0 ), 1 ) . ' km × RM ' . number_format( (float) ( $data['rate'] ?? 0 ), 2 ) ) . '</small>';
+				$parts = array();
+				foreach ( cel_claim_vehicle_breakdown( $data ) as $vname => $v ) {
+					$parts[] = $vname . ' ' . number_format( (float) $v['km'], 1 ) . ' km × RM ' . number_format( (float) $v['rate'], 2 );
+				}
+				echo '<br><small>' . esc_html( implode( ' + ', $parts ) ) . '</small>';
 			}
 			break;
 		case 'cel_sync':

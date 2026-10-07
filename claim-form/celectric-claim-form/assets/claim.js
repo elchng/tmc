@@ -42,16 +42,28 @@
 	}
 
 	function recalcMileage() {
-		var km = 0;
-		sheet.querySelectorAll('[data-cel-km]').forEach(function (input) {
-			km += Math.round(num(input.value) * 10) / 10;
+		// Each trip uses its own vehicle; payment is per vehicle (total km × rate).
+		var rates = cfg.vehicles || {}, kmBy = {};
+		Object.keys(rates).forEach(function (v) { kmBy[v] = 0; });
+		sheet.querySelectorAll('[data-cel-rows="t"] tr').forEach(function (tr) {
+			var veh = tr.querySelector('[data-cel-veh]'), kmIn = tr.querySelector('[data-cel-km]'), amt = tr.querySelector('[data-cel-amt]');
+			var km = Math.round(num(kmIn && kmIn.value) * 10) / 10, v = veh ? veh.value : '';
+			if (amt) { amt.textContent = km > 0 && v in rates ? money(Math.round(km * num(rates[v]) * 100) / 100) : ''; }
+			if (v in kmBy) { kmBy[v] += km; }
 		});
-		km = Math.round(km * 10) / 10;
-		var vehicle = sheet.querySelector('[data-cel-vehicle]');
-		var rate = num((cfg.vehicles || {})[vehicle && vehicle.value]);
-		var net = Math.round(km * rate * 100) / 100;
-		setText('[data-cel-km-total]', km.toLocaleString('en-MY', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' KM');
-		setText('[data-cel-rate]', 'RM ' + rate.toFixed(2) + '/km');
+		var totalKm = 0, net = 0;
+		Object.keys(kmBy).forEach(function (v) {
+			var km = Math.round(kmBy[v] * 10) / 10, amount = Math.round(km * num(rates[v]) * 100) / 100;
+			totalKm += km; net += amount;
+			var row = sheet.querySelector('[data-cel-vrow="' + (window.CSS && CSS.escape ? CSS.escape(v) : v) + '"]');
+			if (row) {
+				row.querySelector('[data-cel-vkm]').textContent = km.toLocaleString('en-MY', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' KM';
+				row.querySelector('[data-cel-vamt]').textContent = 'RM ' + money(amount);
+			}
+		});
+		totalKm = Math.round(totalKm * 10) / 10;
+		net = Math.round(net * 100) / 100;
+		setText('[data-cel-km-total]', totalKm.toLocaleString('en-MY', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' KM');
 		setText('[data-cel-net]', 'RM ' + money(net));
 		return net;
 	}
@@ -70,6 +82,10 @@
 		row.querySelectorAll('[data-n]').forEach(function (el) {
 			el.name = section + '[' + count + '][' + el.getAttribute('data-n') + ']';
 		});
+		// A new trip starts with the vehicle used on the row above.
+		var prev = body.lastElementChild && body.lastElementChild.querySelector('[data-cel-veh]');
+		var veh = row.querySelector('[data-cel-veh]');
+		if (prev && veh) { veh.value = prev.value; }
 		body.appendChild(row);
 		var first = row.querySelector('input');
 		if (first) { first.focus(); }
@@ -79,7 +95,15 @@
 	function onEdit(e) {
 		// On phones only the first blank row is shown; filling it reveals the next one.
 		var tr = e.target.closest && e.target.closest('tr.is-empty');
-		if (tr && e.target.value) { tr.classList.remove('is-empty'); }
+		if (tr && e.target.value && !e.target.hasAttribute('data-cel-veh')) { tr.classList.remove('is-empty'); }
+		// Changing a trip's vehicle also pre-fills the blank trips below it.
+		if (e.type === 'change' && e.target.hasAttribute && e.target.hasAttribute('data-cel-veh')) {
+			var next = e.target.closest('tr').nextElementSibling;
+			for (; next; next = next.nextElementSibling) {
+				var s = next.querySelector('[data-cel-veh]');
+				if (next.classList.contains('is-empty') && s) { s.value = e.target.value; }
+			}
+		}
 		recalc();
 	}
 	sheet.addEventListener('input', onEdit);
@@ -98,7 +122,7 @@
 				e.preventDefault();
 				missing[0].focus();
 				window.alert(isMileage
-					? "Please fill in Employee's Name, Claim Period / Month and Vehicle Type."
+					? "Please fill in Employee's Name and Claim Period / Month."
 					: 'Please fill in Claimant Name, Purpose of Travel and Department / Project.');
 				return;
 			}

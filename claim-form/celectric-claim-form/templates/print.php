@@ -27,7 +27,11 @@ $file_name  = $claim['claim_no'] . ' - ' . $claim['claimant_name'];
 		<button type="button" class="cel-btn cel-btn-primary" onclick="window.print()">Print / Save as PDF</button>
 	</div>
 	<div class="cel-page" id="cel-page">
-		<?php include CEL_CLAIM_DIR . 'templates/' . $claim['type'] . '-sheet.php'; ?>
+		<?php
+		// Mileage claims saved before per-trip vehicles keep their original layout.
+		$sheet = 'mileage' === $claim['type'] && empty( $claim['layout'] ) ? 'mileage-v1' : $claim['type'];
+		include CEL_CLAIM_DIR . 'templates/' . $sheet . '-sheet.php';
+		?>
 	</div>
 	<script>
 	(function () {

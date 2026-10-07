@@ -1,4 +1,4 @@
-# Celectric Claim Forms (WordPress plugin) – v2.1
+# Celectric Claim Forms (WordPress plugin) – v2.2
 
 This plugin puts two Celectric claim forms online:
 
@@ -16,6 +16,23 @@ Google Sheet.
 | `Claims_Register.xlsx` | The register file (also built into the plugin, which can create it in OneDrive for you). It has two tabs: **Travel Claims** (table `TravelClaims`) and **Mileage Claims** (table `MileageClaims`). |
 | `celectric-claim-form/extras/google-apps-script.gs` | The script for the Google Sheets option |
 | `sample-*.pdf` | Example printouts of both forms |
+
+## Mileage claims: vehicle per trip (v2.2)
+
+Staff choose the **Vehicle** on each trip row, so one claim can mix car and motorcycle
+trips. Each row shows its **Amount (RM)** (distance × that vehicle's rate). Section 2
+lists each vehicle used, e.g. *Car: 91.2 KM × RM 0.70/km = RM 63.84* and *Motorcycle:
+28.3 KM × RM 0.40/km = RM 11.32*, then the total distance and the Net Payable Claim.
+Payment is worked out per vehicle (total km × rate). A new or blank trip row starts with
+the vehicle used on the row above, so someone who drives the car all month only picks it
+once. Mileage claims submitted before v2.2 keep their single-vehicle layout and totals.
+
+**If you already set up the OneDrive register before v2.2:** the Mileage table's columns
+have changed (*Vehicle Type* and *Rate* became one *Vehicle Breakdown* column). Either
+create a fresh register (Settings → **Browse OneDrive… → Create Claims_Register.xlsx in
+this folder**), or in your current file change the Mileage Claims table headings to
+match the list in section 5. The Make scenario and the Google Sheets script are already
+updated.
 
 ## What staff get
 
@@ -106,7 +123,7 @@ Only the header details and totals are sent, one row per claim:
 | Form | Columns |
 |---|---|
 | Travel | Claim No, Submission Date, Claimant Name, Staff Email, Department, Purpose, Destination, Travel Period, Subtotal A, Subtotal B, Grand Total, PDF link |
-| Mileage | Claim No, Submission Date, Employee Name, Staff Email, Claim Period, Vehicle Type, Rate (RM/km), Total Distance (KM), Net Payable, PDF link |
+| Mileage | Claim No, Submission Date, Employee Name, Staff Email, Claim Period, Vehicle Breakdown (e.g. “Car 91.2 km; Motorcycle 28.3 km”), Total Distance (KM), Net Payable, PDF link |
 
 Sending happens in the background after the staff member submits, so they don't wait.
 The **Excel / Sheets** column in **Claims** shows *Sent* or the error for each

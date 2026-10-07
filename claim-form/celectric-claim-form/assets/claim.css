@@ -90,6 +90,7 @@ table.cel-sheet .cel-auto { color: #6b7a90; font-size: 11px; margin-left: 4px; }
 .cel-mileage .row.stripe td { background: #F9FAFB !important; }
 .cel-mileage .mtot-l { background: #D6DCE4 !important; font-weight: 700; text-align: right; }
 .cel-mileage .mnet { background: #2F5496 !important; color: #fff !important; font-weight: 700; font-size: 16px; } /* 12pt */
+.cel-mileage .amt { font-weight: 700; }
 .cel-mileage tr:first-child td, .cel-mileage tr.datebar td:nth-child(-n+2) { border-left-color: transparent !important; }
 
 /* ================= editable cells (desktop) ================= */
@@ -198,6 +199,12 @@ table.cel-my-claims .cel-btn { padding: 4px 12px; }
 	.cel-claim-wrap .is-edit .sumrow .guide { grid-column: 1 / -1; font-weight: 400; font-size: 13px; order: 9; }
 	.cel-claim-wrap .is-edit .sumrow:has(.guide) { grid-template-columns: 1fr auto; }
 	.cel-claim-wrap .is-edit .grand { border-bottom: 0 !important; }
+	/* mileage per-vehicle summary: name | amount, then km | rate */
+	.cel-claim-wrap table.cel-sheet.is-edit .vehrow td:nth-child(1) { order: 1; }
+	.cel-claim-wrap table.cel-sheet.is-edit .vehrow td:nth-child(5) { order: 2; }
+	.cel-claim-wrap table.cel-sheet.is-edit .vehrow td:nth-child(2) { order: 3; text-align: left !important; font-weight: 400; }
+	.cel-claim-wrap table.cel-sheet.is-edit .vehrow td:nth-child(3) { order: 4; font-weight: 400; }
+	.cel-claim-wrap table.cel-sheet.is-edit .vehrow td:nth-child(4) { display: none !important; }
 	.cel-actions { position: sticky; bottom: 0; z-index: 5; background: #fff; padding: 10px 0; box-shadow: 0 -6px 12px rgba(0, 0, 0, .06); }
 	.cel-actions .cel-btn { flex: 1 1 auto; }
 	.cel-actions .cel-spacer { display: none; }

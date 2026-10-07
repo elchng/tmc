@@ -176,7 +176,7 @@ function cel_claim_send_email( $p ) {
 	$lines = array( 'A new ' . cel_claim_forms()[ $p['form'] ]['label'] . ' claim has been submitted.', '' );
 	foreach ( cel_claim_columns_for( $p['form'] ) as $k => $label ) {
 		$v       = $p[ $k ];
-		$lines[] = $label . ': ' . ( is_float( $v ) && 'total_km' !== $k && 'rate_per_km' !== $k ? 'RM ' . cel_claim_money( $v ) : $v );
+		$lines[] = $label . ': ' . ( is_float( $v ) && 'total_km' !== $k ? 'RM ' . cel_claim_money( $v ) : $v );
 	}
 	wp_mail( $to, 'Claim ' . $p['claim_no'] . ' – ' . $p['claimant_name'], implode( "\n", $lines ) );
 }
@@ -207,10 +207,9 @@ function cel_claim_test_sync() {
 	);
 	$mileage = array( 'form' => 'mileage', 'claim_no' => 'TEST-0001' ) + $common + array(
 		'claim_period' => current_time( 'F Y' ),
-		'vehicle'      => 'Car',
-		'rate_per_km'  => 0.7,
-		'total_km'     => 120.5,
-		'net_payable'  => 84.35,
+		'vehicle_breakdown' => 'Car 100.0 km; Motorcycle 20.5 km',
+		'total_km'          => 120.5,
+		'net_payable'       => 78.2,
 	);
 	$msg = array();
 	foreach ( array( 'Travel' => $travel, 'Mileage' => $mileage ) as $label => $p ) {

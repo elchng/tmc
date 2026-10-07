@@ -1,11 +1,10 @@
 <?php
 /**
- * Mileage Claim sheet (layout 2): the Excel "Mileage Claim" form with the
- * vehicle chosen on each trip, an amount per trip and a per-vehicle summary.
- * Claims saved before this layout print with mileage-v1-sheet.php.
+ * Mileage Claim sheet, laid out like the Excel "Mileage Claim" form
+ * (columns A–I, same widths, colours and merged cells).
  *
  *  - $mode = 'edit'  : cells contain inputs (on phones the CSS restacks them).
- *  - $mode = 'print' : cells contain the saved values, rates and totals.
+ *  - $mode = 'print' : cells contain the saved values, rate and totals.
  *
  * Expects: $mode, $claim (array).
  */
@@ -19,25 +18,9 @@ $vehicles = cel_claim_vehicle_rates();
 $purposes = cel_claim_mileage_purposes();
 $trips    = isset( $claim['trips'] ) ? array_values( $claim['trips'] ) : array();
 $rows     = $edit ? max( (int) cel_claim_setting( 'mileage_rows' ), count( $trips ) ) : max( 16, count( $trips ) );
-$first    = (string) cel_claim_first_key( $vehicles );
-
-if ( $edit ) {
-	// Totals for what is on screen (after a failed submit), using today's rates.
-	$by = array_fill_keys( array_keys( $vehicles ), 0.0 );
-	foreach ( $trips as $t ) {
-		if ( isset( $by[ $t['vehicle'] ] ) ) {
-			$by[ $t['vehicle'] ] += cel_claim_clean_amount( $t['distance'], 1 );
-		}
-	}
-	$breakdown = array();
-	foreach ( $by as $name => $km ) {
-		$breakdown[ $name ] = array( 'km' => round( $km, 1 ), 'rate' => $vehicles[ $name ], 'amount' => round( round( $km, 1 ) * $vehicles[ $name ], 2 ) );
-	}
-} else {
-	$breakdown = cel_claim_vehicle_breakdown( $claim );
-}
-$km  = array_sum( array_column( $breakdown, 'km' ) );
-$net = array_sum( array_column( $breakdown, 'amount' ) );
+$rate     = (float) ( $claim['rate'] ?? 0 );
+$km       = (float) ( $claim['total_km'] ?? 0 );
+$net      = (float) ( $claim['net_payable'] ?? round( $km * $rate, 2 ) );
 
 $km_text   = function ( $n ) {
 	return number_format( (float) $n, 1 ) . ' KM';
@@ -70,8 +53,7 @@ $select    = function ( $name, $options, $value, $extra = '' ) use ( $edit ) {
 $veh_opts = $vehicles ? array_combine( array_keys( $vehicles ), array_keys( $vehicles ) ) : array();
 $pur_opts = array( '' => $edit ? '— choose —' : '' ) + ( $purposes ? array_combine( $purposes, $purposes ) : array() );
 $config   = array( 'form' => 'mileage', 'vehicles' => $vehicles, 'max' => CEL_CLAIM_MAX_ROWS );
-
-$trip_row = function ( $i, $r, $tpl = false ) use ( $edit, $field, $select, $pur_opts, $veh_opts, $first, $trips ) {
+$trip_row = function ( $i, $r, $tpl = false ) use ( $edit, $field, $select, $pur_opts ) {
 	$name = function ( $k ) use ( $i, $tpl ) {
 		return $tpl ? '' : "t[$i][$k]";
 	};
@@ -80,12 +62,6 @@ $trip_row = function ( $i, $r, $tpl = false ) use ( $edit, $field, $select, $pur
 	};
 	$has  = ! empty( $r['date'] ) || ! empty( $r['from'] ) || ! empty( $r['to'] ) || ( isset( $r['distance'] ) && '' !== $r['distance'] );
 	$dist = $r['distance'] ?? '';
-	// Blank rows start with the vehicle of the last filled-in trip.
-	$veh = $r['vehicle'] ?? '';
-	if ( '' === $veh && $edit ) {
-		$last = end( $trips );
-		$veh  = $last['vehicle'] ?? $first;
-	}
 	ob_start();
 	?>
 	<tr class="m20 row<?php echo ( $i % 2 ) ? ' stripe' : ''; ?><?php echo $has || $tpl ? '' : ' is-empty'; ?>">
@@ -95,7 +71,6 @@ $trip_row = function ( $i, $r, $tpl = false ) use ( $edit, $field, $select, $pur
 		<td class="c" data-label="Time of Arrive"><?php echo $field( $name( 'arrive' ), $r['arrive'] ?? '', 'time', $n( 'arrive' ) ); ?></td>
 		<td data-label="From"><?php echo $field( $name( 'from' ), $r['from'] ?? '', 'text', 'maxlength="120"' . $n( 'from' ) ); ?></td>
 		<td data-label="To"><?php echo $field( $name( 'to' ), $r['to'] ?? '', 'text', 'maxlength="120"' . $n( 'to' ) ); ?></td>
-		<td class="c" data-label="Vehicle"><?php echo $has || $edit ? $select( $name( 'vehicle' ), $veh_opts, $veh, 'data-cel-veh' . $n( 'vehicle' ) ) : ''; ?></td>
 		<td class="r" data-label="Distance (KM)">
 			<?php
 			if ( $edit ) {
@@ -107,7 +82,6 @@ $trip_row = function ( $i, $r, $tpl = false ) use ( $edit, $field, $select, $pur
 		</td>
 		<td data-label="Purpose of Visit"><?php echo $select( $name( 'purpose' ), $pur_opts, $r['purpose'] ?? '', $n( 'purpose' ) ); ?></td>
 		<td data-label="Remarks"><?php echo $field( $name( 'remarks' ), $r['remarks'] ?? '', 'text', 'maxlength="120"' . $n( 'remarks' ) ); ?></td>
-		<td class="r amt" data-label="Amount (RM)" data-cel-amt><?php echo ! $edit && isset( $r['amount'] ) ? esc_html( cel_claim_money( $r['amount'] ) ) : ''; ?></td>
 	</tr>
 	<?php
 	return ob_get_clean();
@@ -118,32 +92,35 @@ $trip_row = function ( $i, $r, $tpl = false ) use ( $edit, $field, $select, $pur
 <img class="cel-logo" src="<?php echo esc_url( cel_claim_logo_url() ); ?>" alt="Celectric" width="104" height="52" decoding="async">
 <table class="cel-sheet cel-msheet<?php echo $edit ? ' is-edit' : ''; ?>" data-cel-sheet<?php echo $edit ? ' data-cel-config="' . esc_attr( wp_json_encode( $config ) ) . '"' : ''; ?>>
 	<colgroup>
-		<col style="width:30px"><col style="width:82px"><col style="width:78px"><col style="width:78px"><col style="width:135px"><col style="width:135px">
-		<col style="width:90px"><col style="width:74px"><col style="width:120px"><col style="width:111px"><col style="width:90px">
+		<col style="width:40px"><col style="width:109px"><col style="width:130px"><col style="width:134px"><col style="width:155px">
+		<col style="width:129px"><col style="width:89px"><col style="width:136px"><col style="width:101px">
 	</colgroup>
 
-	<tr class="m33 top"><td colspan="11" class="mtitle"><?php echo esc_html( cel_claim_setting( 'mileage_title' ) ); ?></td></tr>
+	<tr class="m33 top"><td colspan="9" class="mtitle"><?php echo esc_html( cel_claim_setting( 'mileage_title' ) ); ?></td></tr>
 	<tr class="m20 top datebar">
-		<td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+		<td></td><td></td><td></td><td></td><td></td><td></td><td></td>
 		<td class="lbl r">Date:</td>
 		<td class="lb c"><?php echo esc_html( cel_claim_display_date( $claim['submission_date'] ?? '' ) ); ?></td>
 	</tr>
-	<tr class="m29"><td colspan="11" class="msec">1. CLAIMANT &amp; VEHICLE DETAILS</td></tr>
+	<tr class="m29"><td colspan="9" class="msec">1. CLAIMANT &amp; VEHICLE DETAILS</td></tr>
 	<tr class="m20 info">
-		<td colspan="3" class="lbl">Employee's Name:</td>
-		<td colspan="3" class="lb c in"><?php echo $field( 'claimant_name', $claim['claimant_name'] ?? '', 'text', 'required maxlength="200" autocomplete="name"' ); ?></td>
-		<td colspan="2" class="lbl">Claim Period / Month:</td>
-		<td colspan="2" class="lb in"><?php echo $field( 'claim_period', $claim['claim_period'] ?? '', 'month', 'required' ); ?></td>
-		<td class="pad"></td>
+		<td colspan="2" class="lbl">Employee's Name:</td>
+		<td colspan="2" class="lb c in"><?php echo $field( 'claimant_name', $claim['claimant_name'] ?? '', 'text', 'required maxlength="200" autocomplete="name"' ); ?></td>
+		<td class="lbl">Claim Period / Month:</td>
+		<td class="lb in"><?php echo $field( 'claim_period', $claim['claim_period'] ?? '', 'month', 'required' ); ?></td>
+		<td class="lbl">Vehicle Type:</td>
+		<td colspan="2" class="veh b c in"><?php echo $select( 'vehicle', $veh_opts, $claim['vehicle'] ?? '', 'required data-cel-vehicle' ); ?></td>
 	</tr>
 	<tr class="m20 info">
-		<td colspan="3" class="lbl">Rate Options:</td>
-		<td colspan="7" class="tot b"><?php echo esc_html( $claim['rate_options'] ?? '' ); ?><?php echo $edit ? ' <span class="cel-auto">– choose the vehicle on each trip</span>' : ''; ?></td>
-		<td class="pad"></td>
+		<td colspan="2" class="lbl">Applicable Rate Policy:</td>
+		<td class="tot b r" data-cel-rate><?php echo esc_html( $rate_text( $rate ) ); ?></td>
+		<td class="ropt-l">Rate Options:</td>
+		<td colspan="2" class="ropt"><?php echo esc_html( $claim['rate_options'] ?? '' ); ?></td>
+		<td class="pad"></td><td class="pad"></td><td class="pad"></td>
 	</tr>
-	<tr class="m20 blank"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+	<tr class="m20 blank"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
 	<tr class="m32 mhead">
-		<td>No.</td><td>Date</td><td>Time of Departure</td><td>Time of Arrive</td><td>From</td><td>To</td><td>Vehicle</td><td>Distance (KM)</td><td>Purpose of Visit</td><td>Remarks</td><td>Amount (RM)</td>
+		<td>No.</td><td>Date</td><td>Time of Departure</td><td>Time of Arrive</td><td>From</td><td>To</td><td>Distance (KM)</td><td>Purpose of Visit</td><td>Remarks</td>
 	</tr>
 	<tbody data-cel-rows="t">
 	<?php
@@ -153,31 +130,19 @@ $trip_row = function ( $i, $r, $tpl = false ) use ( $edit, $field, $select, $pur
 	?>
 	</tbody>
 	<tr class="m29 subrow">
-		<td colspan="7" class="mtot-l">TOTAL MILEAGE &amp; CLAIM AMOUNT</td>
+		<td colspan="6" class="mtot-l">TOTAL MILEAGE &amp; CLAIM AMOUNT</td>
 		<td class="tot b r" data-cel-km-total><?php echo esc_html( $km_text( $km ) ); ?></td>
-		<td colspan="2" class="mtot-l">Total Claim Amount:</td>
+		<td class="mtot-l">Total Claim Amount:</td>
 		<td class="mnet r" data-cel-net><?php echo esc_html( 'RM ' . cel_claim_money( $net ) ); ?></td>
 	</tr>
-	<tr class="m20 blank"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-	<tr class="m29"><td colspan="11" class="msec">2. CLAIM SUMMARY BREAKDOWN</td></tr>
-	<?php
-	$shown = $edit ? $breakdown : ( $breakdown ? $breakdown : array( $first => array( 'km' => 0, 'rate' => $vehicles[ $first ] ?? 0, 'amount' => 0 ) ) );
-	foreach ( $shown as $vname => $v ) :
-		?>
-	<tr class="m26 sumrow vehrow" data-cel-vrow="<?php echo esc_attr( $vname ); ?>">
-		<td colspan="3" class="lbl"><?php echo esc_html( $vname ); ?>:</td>
-		<td colspan="3" class="tot b c" data-cel-vkm><?php echo esc_html( $km_text( $v['km'] ) ); ?></td>
-		<td colspan="2" class="c">× <?php echo esc_html( $rate_text( $v['rate'] ) ); ?></td>
-		<td colspan="2" class="r">=</td>
-		<td class="tot b r" data-cel-vamt><?php echo esc_html( 'RM ' . cel_claim_money( $v['amount'] ) ); ?></td>
-	</tr>
-		<?php
-	endforeach;
-	?>
+	<tr class="m20 blank"><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+	<tr class="m29"><td colspan="9" class="msec">2. CLAIM SUMMARY BREAKDOWN</td></tr>
 	<tr class="m26 sumrow">
-		<td colspan="3" class="lbl">Total Distance (KM):</td>
-		<td colspan="3" class="tot b c" data-cel-km-total><?php echo esc_html( $km_text( $km ) ); ?></td>
-		<td colspan="3" class="lbl r">Net Payable Claim:</td>
+		<td colspan="2" class="lbl">Total Distance (KM):</td>
+		<td class="tot b c" data-cel-km-total><?php echo esc_html( $km_text( $km ) ); ?></td>
+		<td class="lbl">Claim Rate Used:</td>
+		<td class="tot b c" data-cel-rate><?php echo esc_html( $rate_text( $rate ) ); ?></td>
+		<td colspan="2" class="lbl r">Net Payable Claim:</td>
 		<td colspan="2" class="mnet c" data-cel-net data-cel-grand><?php echo esc_html( 'RM ' . cel_claim_money( $net ) ); ?></td>
 	</tr>
 </table>

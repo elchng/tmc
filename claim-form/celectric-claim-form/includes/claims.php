@@ -123,7 +123,7 @@ function cel_claim_total( $c ) {
 /** One-line description used in lists. */
 function cel_claim_summary( $c ) {
 	if ( 'mileage' === $c['type'] ) {
-		return trim( cel_claim_display_month( $c['claim_period'] ) . ' · ' . $c['vehicle'] . ' · ' . number_format( (float) $c['total_km'], 1 ) . ' km', ' ·' );
+		return trim( cel_claim_display_month( $c['claim_period'] ) . ' · ' . cel_claim_vehicle_breakdown_text( $c ), ' ·' );
 	}
 	return (string) $c['purpose'];
 }
@@ -147,10 +147,9 @@ function cel_claim_payload( $post_id ) {
 	);
 	if ( 'mileage' === $c['type'] ) {
 		return $common + array(
-			'claim_period' => cel_claim_display_month( $c['claim_period'] ),
-			'vehicle'      => $c['vehicle'],
-			'rate_per_km'  => (float) $c['rate'],
-			'total_km'     => (float) $c['total_km'],
+			'claim_period'      => cel_claim_display_month( $c['claim_period'] ),
+			'vehicle_breakdown' => cel_claim_vehicle_breakdown_text( $c ),
+			'total_km'          => (float) $c['total_km'],
 			'net_payable'  => (float) $c['net_payable'],
 			'print_url'    => cel_claim_print_url( $post_id ),
 		);
@@ -176,8 +175,7 @@ function cel_claim_columns_for( $type ) {
 			'claimant_name'   => 'Employee Name',
 			'staff_email'     => 'Staff Email',
 			'claim_period'    => 'Claim Period',
-			'vehicle'         => 'Vehicle Type',
-			'rate_per_km'     => 'Rate (RM/km)',
+			'vehicle_breakdown' => 'Vehicle Breakdown',
 			'total_km'        => 'Total Distance (KM)',
 			'net_payable'     => 'Net Payable (RM)',
 			'print_url'       => 'Print / PDF Link',
