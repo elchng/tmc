@@ -14,6 +14,9 @@ function cel_claim_default_settings() {
 		// General.
 		'logo_url'           => '',
 		'notify_email'       => '',
+		'claim_page_url'     => '/claim-form/',
+		'menu_button_menu'   => 0,
+		'menu_button_text'   => 'Claim Form',
 
 		// Travel & Expense Claim.
 		'travel_title'       => 'TRAVEL & EXPENSE CLAIM FORM',
@@ -155,6 +158,23 @@ function cel_claim_sanitize_settings( $in ) {
 	if ( $has( 'logo_url' ) ) {
 		$out['logo_url'] = esc_url_raw( trim( $in['logo_url'] ), array( 'https', 'http' ) );
 	}
+	if ( $has( 'claim_page_url' ) ) {
+		$u = trim( (string) $in['claim_page_url'] );
+		if ( '' === $u ) {
+			$u = '/claim-form/';
+		} elseif ( 0 === strpos( $u, 'http' ) ) {
+			$u = esc_url_raw( $u, array( 'https', 'http' ) );
+		} else {
+			$u = '/' . trim( sanitize_text_field( $u ), '/' ) . '/';
+		}
+		$out['claim_page_url'] = $u;
+	}
+	if ( $has( 'menu_button_menu' ) ) {
+		$out['menu_button_menu'] = absint( $in['menu_button_menu'] );
+	}
+	if ( $has( 'menu_button_text' ) ) {
+		$out['menu_button_text'] = sanitize_text_field( $in['menu_button_text'] ) ? sanitize_text_field( $in['menu_button_text'] ) : 'Claim Form';
+	}
 	if ( $has( 'notify_email' ) ) {
 		$out['notify_email'] = implode( ', ', array_filter( array_map( 'sanitize_email', explode( ',', (string) $in['notify_email'] ) ) ) );
 	}
@@ -280,6 +300,14 @@ function cel_claim_settings_page() {
 			} else {
 				$field( 'logo_url', 'Logo URL', 'Optional. Leave blank to use the Celectric logo from the Excel forms.', 'url', 'large-text' );
 				$field( 'notify_email', 'Notify email(s)', 'Optional, comma-separated. Receives an email with the totals and PDF link for every new claim.', 'text', 'large-text' );
+				echo '<tr><td colspan="2" style="padding-left:0"><h2 style="margin:0">Staff button &amp; access</h2><p>Claim forms and the button are only for users with the <strong>Employee</strong> role (and Editors / Administrators). Employees go straight to the claim page after logging in and do not see wp-admin.</p></td></tr>';
+				$field( 'claim_page_url', 'Claim page', 'Where the button goes and where Employees land after logging in, e.g. <code>/claim-form/</code>.', 'text', 'regular-text code' );
+				$field( 'menu_button_text', 'Button text' );
+				echo '<tr><th scope="row"><label for="cel_menu_button_menu">Add button to menu</label></th><td><select id="cel_menu_button_menu" name="' . esc_attr( $n . '[menu_button_menu]' ) . '"><option value="0">— Don’t add (I’ll use the shortcode) —</option>';
+				foreach ( wp_get_nav_menus() as $menu ) {
+					echo '<option value="' . (int) $menu->term_id . '"' . selected( (int) $s['menu_button_menu'], (int) $menu->term_id, false ) . '>' . esc_html( $menu->name ) . '</option>';
+				}
+				echo '</select><p class="description">Choose the menu shown in your header. The button is added at the end of it, for logged-in staff only. Or leave this off and put the shortcode <code>[celectric_claim_button]</code> in your Elementor header.</p></td></tr>';
 			}
 			?>
 			</table>

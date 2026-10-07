@@ -1,4 +1,4 @@
-# Celectric Claim Forms (WordPress plugin) – v2.2
+# Celectric Claim Forms (WordPress plugin) – v2.3
 
 This plugin puts two Celectric claim forms online:
 
@@ -86,14 +86,36 @@ widget and enter one of these:
 | Travel & Expense Claim | `[celectric_claim_form]` |
 | Mileage Claim | `[celectric_mileage_form]` |
 | My Claims (optional) | `[celectric_my_claims]` |
+| Staff-only header button | `[celectric_claim_button]` |
 
 Set the Elementor section/container to **Full Width**.
 
 ## 3. Staff logins
 
-**Users → Add New User**, role **Subscriber**. The form fills in Claimant / Employee
-Name from the user's **Display Name**. HR / Finance users who need to see all claims
-should be **Editor** or **Administrator**.
+The plugin adds an **Employee** user role (v2.3). Go to **Users → Add New User** and
+choose role **Employee**. The form fills in Claimant / Employee Name from the user's
+**Display Name**. HR / Finance users who need to see all claims should be **Editor** or
+**Administrator**.
+
+- Only Employees, Editors and Administrators can open the claim forms. Other logged-in
+  users (e.g. Subscribers or shop customers) see a "Staff only" message.
+- After logging in, Employees go straight to the claim page. They don't see the WordPress
+  toolbar or wp-admin, but they can still open their Profile page to change their
+  password.
+- Staff created earlier as **Subscriber** must be changed to **Employee**: tick them on
+  the Users page, then *Change role to… → Employee → Change*.
+
+### Staff-only "Claim Form" button in the header
+
+The button only shows for logged-in staff. Visitors and other users see nothing. Set the
+claim page address and button text under **Claims → Settings → General** (defaults:
+`/claim-form/`, "Claim Form"). Then use either option:
+
+- **Elementor Pro header (Theme Builder):** edit the header, drag a **Shortcode** widget
+  where you want the button, and enter `[celectric_claim_button]`. Optional:
+  `[celectric_claim_button text="Submit Claim" url="/claim-form/"]`.
+- **Theme header / menu:** in **Claims → Settings → General → Add button to menu**,
+  choose the menu shown in your header. The button is added at the end of that menu.
 
 ## 4. Rates and dropdown lists (Claims → Settings)
 

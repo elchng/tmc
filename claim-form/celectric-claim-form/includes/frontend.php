@@ -88,6 +88,10 @@ function cel_claim_history_shortcode() {
 	return '<div class="cel-claim-wrap">' . cel_claim_history( '' ) . '</div>';
 }
 
+function cel_claim_not_staff_box() {
+	return '<div class="cel-claim-login"><h3>Staff only</h3><p>Claim forms are for Celectric staff. If you are staff, ask the administrator to set your account to <strong>Employee</strong>.</p></div>';
+}
+
 function cel_claim_login_box( $what ) {
 	return '<div class="cel-claim-login"><h3>Staff login</h3><p>Please log in to ' . esc_html( $what ) . '.</p>'
 		. wp_login_form( array( 'echo' => false, 'redirect' => get_permalink() ) ) . '</div>';
@@ -97,6 +101,9 @@ function cel_claim_render_form( $type ) {
 	cel_claim_enqueue( true );
 	if ( ! is_user_logged_in() ) {
 		return cel_claim_login_box( 'submit a claim' );
+	}
+	if ( ! cel_claim_is_staff() ) {
+		return cel_claim_not_staff_box();
 	}
 
 	$user   = wp_get_current_user();
@@ -233,6 +240,9 @@ function cel_claim_handle_save() {
 	if ( ! is_user_logged_in() ) {
 		wp_safe_redirect( wp_login_url( $back ) );
 		exit;
+	}
+	if ( ! cel_claim_is_staff() ) {
+		wp_die( 'Claim forms are for Celectric staff only.', 'Not allowed', array( 'response' => 403, 'back_link' => true ) );
 	}
 	if ( ! isset( $_POST['_cel_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['_cel_nonce'] ), 'cel_claim_save' ) ) {
 		wp_die( 'Your session has expired. Please go back, refresh the page and submit again.', 'Claim not saved', array( 'back_link' => true ) );
